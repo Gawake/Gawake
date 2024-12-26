@@ -21,13 +21,17 @@
 #include "config.h"
 
 #include "gawake-window.h"
+#include "database-connection/database-connection.h"
 
 struct _GawakeWindow
 {
-	AdwApplicationWindow  parent_instance;
+  AdwApplicationWindow   parent_instance;
 
-	/* Template widgets */
-	GtkLabel            *label;
+  /* Template widgets */
+  GtkLabel              *label;
+
+  /* Instance variables */
+  gint                   database_connection_status;
 };
 
 G_DEFINE_FINAL_TYPE (GawakeWindow, gawake_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -35,14 +39,16 @@ G_DEFINE_FINAL_TYPE (GawakeWindow, gawake_window, ADW_TYPE_APPLICATION_WINDOW)
 static void
 gawake_window_class_init (GawakeWindowClass *klass)
 {
-	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-	gtk_widget_class_set_template_from_resource (widget_class, "/io/github/gawake/Gawake/gawake-window.ui");
-	gtk_widget_class_bind_template_child (widget_class, GawakeWindow, label);
+  gtk_widget_class_set_template_from_resource (widget_class, "/io/github/gawake/Gawake/gawake-window.ui");
+  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, label);
 }
 
 static void
 gawake_window_init (GawakeWindow *self)
 {
-	gtk_widget_init_template (GTK_WIDGET (self));
+  gtk_widget_init_template (GTK_WIDGET (self));
+
+  self->database_connection_status = connect_database (true);
 }

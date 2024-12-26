@@ -1,0 +1,3 @@
+[submodule "src/database-connection"]
+	path = src/database-connection
+	url = https://github.com/Gawake/database-connection.git

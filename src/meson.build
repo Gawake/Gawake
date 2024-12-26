@@ -1,13 +1,19 @@
+subdir('database-connection')
+
 gawake_sources = [
   'main.c',
   'gawake-application.c',
   'gawake-window.c',
 ]
 
+gawake_sources += database_connection_sources
+
 gawake_deps = [
   dependency('gtk4'),
-  dependency('libadwaita-1', version: '>= 1.4'),
+  dependency('libadwaita-1', version: '>= 1.2') # originally 1.4
 ]
+
+gawake_deps += database_connection_deps
 
 gawake_sources += gnome.compile_resources('gawake-resources',
   'gawake.gresource.xml',

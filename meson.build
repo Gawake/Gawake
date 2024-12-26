@@ -1,6 +1,6 @@
 project('gawake', 'c',
           version: '0.1.0',
-    meson_version: '>= 1.0.0',
+    meson_version: '>= 0.62.0',
   default_options: [ 'warning_level=2', 'werror=false', 'c_std=gnu11', ],
 )
 
@@ -72,6 +72,17 @@ test_c_args = [
   '-fno-strict-aliasing',
   ['-Werror=format-security', '-Werror=format=2'],
 ]
+
+# TODO
+preprocessor_debug = get_option('PREPROCESSOR_DEBUG')
+add_global_arguments(f'-DPREPROCESSOR_DEBUG=@preprocessor_debug@', language : 'c')
+
+if (get_option('MODE_ALWAYS_ON'))
+  add_global_arguments('-DMODE_ALWAYS_ON=1', language : 'c')
+else
+  add_global_arguments('-DMODE_ALWAYS_ON=0', language : 'c')
+endif
+
 if get_option('buildtype') != 'plain'
   test_c_args += '-fstack-protector-strong'
 endif
