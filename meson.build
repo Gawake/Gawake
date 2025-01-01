@@ -82,6 +82,7 @@ if (get_option('MODE_ALWAYS_ON'))
 else
   add_global_arguments('-DMODE_ALWAYS_ON=0', language : 'c')
 endif
+################################################################################
 
 if get_option('buildtype') != 'plain'
   test_c_args += '-fstack-protector-strong'

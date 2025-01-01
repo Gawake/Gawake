@@ -32,7 +32,13 @@
                     "type" : "git",
                     "url" : "file:///mnt/34c4b3c0-acbb-4d0f-99ec-9a126a8110a2/Developing"
                 }
+            ],
+            "config-opts" : [
+                "--libdir=lib"
             ]
         }
-    ]
+    ],
+    "build-options" : {
+        "env" : {        }
+    }
 }

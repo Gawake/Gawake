@@ -4,6 +4,7 @@ gawake_sources = [
   'main.c',
   'gawake-application.c',
   'gawake-window.c',
+  'rule-row.c'
 ]
 
 gawake_sources += database_connection_sources
