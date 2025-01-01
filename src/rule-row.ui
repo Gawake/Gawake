@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="RuleRow" parent="GtkListBoxRow">
+    <property name="activatable">True</property>
+    <property name="selectable">False</property>
+    <child>
+      <object class="GtkBox">
+        <property name="valign">center</property>
+        <property name="margin_start">12</property>
+        <property name="margin_end">12</property>
+        <property name="margin_top">12</property>
+        <property name="margin_bottom">12</property>
+        <property name="hexpand">True</property>
+
+        <!-- TITLE -->
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <child>
+              <object class="GtkLabel" id="title">
+                <property name="hexpand">true</property>
+                <!-- translators: the rule name -->
+                <property name="label" translatable="yes">Name</property>
+                <property name="ellipsize">end</property>
+                <property name="xalign">0</property>
+                <style>
+                  <class name="heading"/>
+                </style>
+              </object>
+            </child>
+
+            <!-- TIME -->
+            <child>
+              <object class="GtkLabel" id="time">
+                <property name="hexpand">true</property>
+                <property name="xalign">0</property>
+                <style>
+                  <class name="rule-time"/>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child>
+
+            <!-- REPEATS -->
+            <child>
+              <object class="GtkLabel" id="repeats">
+                <!-- translators: tooltip for the days that therules repeats -->
+                <property name="tooltip_text" translatable="yes">Repeats</property>
+                <property name="hexpand">true</property>
+                <property name="ellipsize">end</property>
+                <property name="xalign">0</property>
+                <style>
+                  <class name="dim-label"/>
+                  <class name="caption"/>
+                </style>
+              </object>
+            </child>
+
+            <!-- MODE -->
+            <child>
+              <object class="GtkRevealer" id="mode_revealer">
+                <property name="reveal-child">false</property>
+                <child>
+                  <object class="GtkLabel" id="mode">
+                    <!-- translators: tooltip for the rule mode -->
+                    <property name="tooltip_text" translatable="yes">Mode</property>
+                    <property name="hexpand">true</property>
+                    <property name="ellipsize">end</property>
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="dim-label"/>
+                      <class name="caption"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+          </object>
+        </child>
+
+        <child>
+          <!-- ENABLE/DISABLE -->
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <child>
+              <object class="GtkSwitch" id="active_toggle">
+                <property name="valign">center</property>
+              </object>
+            </child>
+
+            <!-- DELETE -->
+            <child>
+              <object class="GtkButton" id="delete_button">
+                <!-- translators: tooltip for the delete rule button -->
+                <property name="tooltip_text" translatable="yes">Delete</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="icon_name">edit-delete-symbolic</property>
+                <style>
+                  <class name="circular"/>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+
+</interface>
