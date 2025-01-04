@@ -23,6 +23,7 @@
 #include "gawake-window.h"
 
 #include "rule-row.h"
+#include "rule-setup-dialog.h"
 
 #define ALLOW_MANAGING_RULES
 #define ALLOW_MANAGING_CONFIGURATION
@@ -37,9 +38,11 @@ struct _GawakeWindow
   /* Template widgets */
   GtkListBox              *turn_on_rules_listbox;
   GtkListBox              *turn_off_rules_listbox;
+  GtkButton               *add_button;
+  AdwViewStack            *stack;
 
   /* Instance variables */
-  gint                   database_connection_status;
+  gint                     database_connection_status;
 };
 
 G_DEFINE_FINAL_TYPE (GawakeWindow, gawake_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -68,6 +71,25 @@ gawake_window_populate_rules (GawakeWindow *self,
 }
 
 static void
+gawake_window_add_button_clicked (GtkButton *self,
+                                  gpointer   user_data)
+{
+  GawakeWindow *window = GAWAKE_WINDOW (user_data);
+  GtkWindow *dialog = NULL;
+  const gchar *page_name = NULL;
+  Table table;
+
+  page_name = adw_view_stack_get_visible_child_name (window->stack);
+
+  table = (g_strcmp0 (page_name, "on")) ? TABLE_OFF : TABLE_ON;
+
+  dialog = GTK_WINDOW (rule_setup_dialog_new_add (table));
+
+  gtk_window_set_transient_for (dialog, GTK_WINDOW (window));
+  gtk_window_present (dialog);
+}
+
+static void
 gawake_window_class_init (GawakeWindowClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -77,6 +99,8 @@ gawake_window_class_init (GawakeWindowClass *klass)
 
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, turn_on_rules_listbox);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, turn_off_rules_listbox);
+  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, add_button);
+  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, stack);
 }
 
 static void
@@ -84,6 +108,13 @@ gawake_window_init (GawakeWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
+  // Signals
+  g_signal_connect (self->add_button,
+                    "clicked",
+                    G_CALLBACK (gawake_window_add_button_clicked),
+                    self);
+
+  // Database
   self->database_connection_status = connect_database (false);
 
   if (self->database_connection_status == SQLITE_OK)

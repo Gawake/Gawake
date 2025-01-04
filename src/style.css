@@ -3,3 +3,11 @@
 	font-weight: 300;
 }
 
+.rule-setup-time {
+	font-size: 32pt;
+}
+
+.weekend {
+  color: @red_1;
+}
+
