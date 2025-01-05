@@ -47,6 +47,19 @@ struct _GawakeWindow
 
 G_DEFINE_FINAL_TYPE (GawakeWindow, gawake_window, ADW_TYPE_APPLICATION_WINDOW)
 
+static Table
+gawake_window_get_table_from_page (GawakeWindow *self)
+{
+  const gchar *page_name = NULL;
+  Table table;
+
+  page_name = adw_view_stack_get_visible_child_name (self->stack);
+
+  table = (g_strcmp0 (page_name, "on")) ? TABLE_OFF : TABLE_ON;
+
+  return table;
+}
+
 static void
 gawake_window_populate_rules (GawakeWindow *self,
                               Table         table)
@@ -71,17 +84,28 @@ gawake_window_populate_rules (GawakeWindow *self,
 }
 
 static void
+gawake_window_list_box_row_activated (GtkListBox    *self,
+                                      GtkListBoxRow *row,
+                                      gpointer       user_data)
+{
+  GawakeWindow *window = GAWAKE_WINDOW (user_data);
+  guint16 rule_id = rule_row_get_id (RULE_ROW (row));
+  Table table = gawake_window_get_table_from_page (window);
+  GtkWindow *dialog = NULL;
+
+  dialog = GTK_WINDOW (rule_setup_dialog_new_edit (table, rule_id));
+
+  gtk_window_set_transient_for (dialog, GTK_WINDOW (window));
+  gtk_window_present (dialog);
+}
+
+static void
 gawake_window_add_button_clicked (GtkButton *self,
                                   gpointer   user_data)
 {
   GawakeWindow *window = GAWAKE_WINDOW (user_data);
   GtkWindow *dialog = NULL;
-  const gchar *page_name = NULL;
-  Table table;
-
-  page_name = adw_view_stack_get_visible_child_name (window->stack);
-
-  table = (g_strcmp0 (page_name, "on")) ? TABLE_OFF : TABLE_ON;
+  Table table = gawake_window_get_table_from_page (window);
 
   dialog = GTK_WINDOW (rule_setup_dialog_new_add (table));
 
@@ -114,6 +138,16 @@ gawake_window_init (GawakeWindow *self)
                     G_CALLBACK (gawake_window_add_button_clicked),
                     self);
 
+  g_signal_connect (self->turn_on_rules_listbox,
+                    "row-activated",
+                    G_CALLBACK (gawake_window_list_box_row_activated),
+                    self);
+
+  g_signal_connect (self->turn_off_rules_listbox,
+                    "row-activated",
+                    G_CALLBACK (gawake_window_list_box_row_activated),
+                    self);
+
   // Database
   self->database_connection_status = connect_database (false);
 
@@ -121,5 +155,9 @@ gawake_window_init (GawakeWindow *self)
     {
       gawake_window_populate_rules (self, TABLE_ON);
       gawake_window_populate_rules (self, TABLE_OFF);
+    }
+  else
+    {
+      // TODO show error
     }
 }

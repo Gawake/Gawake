@@ -99,8 +99,9 @@ rule_setup_dialog_action_button_clicked (GtkButton *self,
   RuleSetupDialog *dialog = RULE_SETUP_DIALOG (user_data);
   adw_combo_row_get_selected_item (dialog->mode_row);
 
-  // Id (not used)
-  rule.id = 0;
+  // Id
+  if (dialog->dialog_type == RULE_SETUP_DIALOG_TYPE_ADD)
+    rule.id = 0;
 
   // Name
   g_snprintf (rule.name, RULE_NAME_LENGTH,
@@ -122,17 +123,20 @@ rule_setup_dialog_action_button_clicked (GtkButton *self,
   rule.days[6] = (bool) gtk_toggle_button_get_active (dialog->day_6);
 
   // Active
-  rule.active = true;
+  if (dialog->dialog_type == RULE_SETUP_DIALOG_TYPE_ADD)
+    rule.active = true;
 
   // Mode
   if (dialog->table == TABLE_OFF)
     rule.mode = (Mode) adw_combo_row_get_selected (dialog->mode_row);
+  else
+    rule.mode = MODE_LAST;
 
   // Table
   rule.table = dialog->table;
 
   // Validate and add/edit rule
-  if (rule_validate_rule (&rule))
+  if (rule_validate_rule (&rule) == EXIT_SUCCESS)
     {
       if (dialog->dialog_type == RULE_SETUP_DIALOG_TYPE_ADD)
         rule_add (&rule);
@@ -189,9 +193,19 @@ rule_setup_dialog_constructed (GObject *gobject)
   // If the dialog is to edit a rule, set all fields with the rule's values
   if (self->dialog_type == RULE_SETUP_DIALOG_TYPE_EDIT)
     {
-      Rule rule;
+      Rule rule =
+        {
+          .id = 0,
+          .name = "",
+          .hour = 00,
+          .minutes = 00,
+          .days = {0, 0, 0, 0, 0, 0, 0},
+          .mode = MODE_LAST,
+          .table = TABLE_LAST
+        };
       gint status;
 
+      g_debug ("Getting rule with id %d and table %d", self->rule_id, self->table); // TODO
       status = rule_get_single (self->rule_id, self->table, &rule);
 
       if (status == EXIT_SUCCESS)

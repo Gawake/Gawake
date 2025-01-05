@@ -75,6 +75,13 @@ typedef enum
 
 G_DEFINE_TYPE (RuleRow, rule_row, GTK_TYPE_LIST_BOX_ROW)
 
+guint16
+rule_row_get_id (RuleRow *self)
+{
+  g_debug ("Returning rule id %d", self->rule_id);
+  return self->rule_id;
+}
+
 static void
 rule_row_set_id (RuleRow *self,
                  guint16  id)
