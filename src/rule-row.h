@@ -34,7 +34,7 @@ G_DECLARE_FINAL_TYPE (RuleRow, rule_row, RULE, ROW, GtkListBoxRow)
 
 guint16 rule_row_get_id (RuleRow *self);
 
-RuleRow *rule_row_new (void);
+RuleRow *rule_row_new (Table table, uint16_t rule_id);
 void rule_row_set_fields (RuleRow *self, Rule rule);
 
 G_END_DECLS

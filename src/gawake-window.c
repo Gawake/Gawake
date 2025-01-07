@@ -47,6 +47,20 @@ struct _GawakeWindow
 
 G_DEFINE_FINAL_TYPE (GawakeWindow, gawake_window, ADW_TYPE_APPLICATION_WINDOW)
 
+static void
+gawake_window_delete_rule (RuleRow  *self,
+                           guint     _table,
+                           gpointer  user_data)
+{
+  GawakeWindow *window = GAWAKE_WINDOW (user_data);
+  Table table = (Table) _table;
+
+  gtk_list_box_remove ((table == TABLE_ON) ? window->turn_on_rules_listbox : window->turn_off_rules_listbox,
+                       GTK_WIDGET (self));
+
+  g_clear_object (&self);
+}
+
 static Table
 gawake_window_get_table_from_page (GawakeWindow *self)
 {
@@ -72,8 +86,14 @@ gawake_window_populate_rules (GawakeWindow *self,
 
   for (guint16 row_idx = 0; row_idx < row_count; row_idx++)
     {
-      RuleRow *row = rule_row_new ();
-      rule_row_set_fields (row, rules[row_idx]);
+      RuleRow *row = rule_row_new (table, rules[row_idx].id);
+
+      // TODO does signals must be somehow freed?
+      g_signal_connect (row,
+                        "rule-deleted",
+                        G_CALLBACK (gawake_window_delete_rule),
+                        self);
+
       if (table == TABLE_ON)
         gtk_list_box_append (self->turn_on_rules_listbox, GTK_WIDGET (row));
       else

@@ -18,12 +18,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-/* TODO
- * Translate modes
- *
- * Signal to delete rule
- */
-
 #include <glib/gi18n.h>
 #include <inttypes.h>
 
@@ -47,6 +41,7 @@ struct _RuleRow
   Table                      table;
 };
 
+// Translations
 static const
 gchar *days_plural[] =
 {
@@ -73,12 +68,41 @@ typedef enum
   TERMS_PLURAL_LAST
 } TermsPlural;
 
+// Properties
+enum
+{
+  PROP_ID = 1,
+  PROP_TABLE,
+
+  N_PROPS
+};
+
+static GParamSpec *obj_properties[N_PROPS];
+
+// Signals
+enum
+{
+  SIGNAL_DELETED,
+
+  N_SIGNALS
+};
+
+static guint obj_signals[N_SIGNALS];
+
 G_DEFINE_TYPE (RuleRow, rule_row, GTK_TYPE_LIST_BOX_ROW)
+
+static void
+rule_row_emit_deleted (RuleRow *self)
+{
+  g_signal_emit (self,
+                 obj_signals[SIGNAL_DELETED],
+                 0,
+                 (guint) self->table);
+}
 
 guint16
 rule_row_get_id (RuleRow *self)
 {
-  g_debug ("Returning rule id %d", self->rule_id);
   return self->rule_id;
 }
 
@@ -134,7 +158,7 @@ rule_row_set_table (RuleRow  *self,
 // Bruh, it's 01/01/2025, 00:24 and I'm writing this code
 static void
 rule_row_set_repeats (RuleRow    *self,
-                      gboolean    days[7])
+                      bool        days[7])
 {
   gint sum = 0;
   GString *repeated_days = g_string_new ("");
@@ -240,8 +264,7 @@ rule_row_delete_rule (GtkButton *self,
   if (status == EXIT_SUCCESS)
     gtk_widget_set_visible (GTK_WIDGET (row), FALSE);
 
-  // TODO emit warning on failure
-  // delete widget
+  rule_row_emit_deleted (row);
 }
 
 void
@@ -256,8 +279,70 @@ rule_row_set_fields (RuleRow *self,
     rule_row_set_mode (self, rule.mode);
 
   rule_row_set_table (self, rule.table);
-  rule_row_set_repeats (self, (gboolean *) rule.days);
+  rule_row_set_repeats (self, rule.days);
   rule_row_set_active (self, (gboolean) rule.active);
+}
+
+static void
+rule_row_constructed (GObject *gobject)
+{
+  RuleRow *self = RULE_ROW (gobject);
+    Rule rule =
+    {
+      .id = 0,
+      .name = "",
+      .hour = 00,
+      .minutes = 00,
+      .days = {0, 0, 0, 0, 0, 0, 0},
+      .mode = MODE_LAST,
+      .table = TABLE_LAST
+    };
+  gint status;
+  G_OBJECT_CLASS (rule_row_parent_class)->constructed (gobject);
+
+  status = rule_get_single (self->rule_id, self->table, &rule);
+
+  if (status == EXIT_SUCCESS)
+    {
+      rule_row_set_id (self, rule.id);
+      rule_row_set_title (self, rule.name);
+      rule_row_set_time (self, rule.hour, rule.minutes);
+
+      if (rule.table == TABLE_OFF)
+        rule_row_set_mode (self, rule.mode);
+
+      rule_row_set_table (self, rule.table);
+      rule_row_set_repeats (self, rule.days);
+      rule_row_set_active (self, (gboolean) rule.active);
+    }
+  else
+    {
+      // TODO emit warning as a signal
+    }
+
+}
+
+static void
+rule_row_set_property (GObject      *object,
+                       guint         property_id,
+                       const GValue *value,
+                       GParamSpec   *pspec)
+{
+  RuleRow *self = RULE_ROW (object);
+
+  switch (property_id)
+    {
+    case PROP_ID:
+      self->rule_id = (uint16_t) g_value_get_int (value);
+      break;
+
+    case PROP_TABLE:
+      self->table = (Table) g_value_get_int (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+    }
 }
 
 static void
@@ -276,6 +361,46 @@ rule_row_class_init (RuleRowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, RuleRow, mode);
   gtk_widget_class_bind_template_child (widget_class, RuleRow, active_toggle);
   gtk_widget_class_bind_template_child (widget_class, RuleRow, delete_button);
+
+  // Properties
+  obj_properties[PROP_ID] =
+    g_param_spec_int ("id",
+                      NULL, NULL,
+                      0, UINT16_MAX,
+                      0,
+                      G_PARAM_CONSTRUCT_ONLY |
+                      G_PARAM_WRITABLE |
+                      G_PARAM_STATIC_NAME);
+
+  obj_properties[PROP_TABLE] =
+    g_param_spec_int ("table",
+                      NULL, NULL,
+                      0, (TABLE_LAST-1),
+                      TABLE_ON,
+                      G_PARAM_CONSTRUCT_ONLY |
+                      G_PARAM_WRITABLE |
+                      G_PARAM_STATIC_NAME);
+
+  G_OBJECT_CLASS (klass)->set_property = rule_row_set_property;
+
+  g_object_class_install_properties (G_OBJECT_CLASS (klass),
+                                     N_PROPS,
+                                     obj_properties);
+
+  // Constructor
+  G_OBJECT_CLASS (klass)->constructed = rule_row_constructed;
+
+  // Signals
+  obj_signals[SIGNAL_DELETED] =
+    g_signal_new ("rule-deleted",
+                  RULE_TYPE_ROW,
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE,            // no return value
+                  1,                      // 2 arguments
+                  G_TYPE_UINT);           // table
 }
 
 static void
@@ -299,7 +424,12 @@ rule_row_init (RuleRow *self)
 }
 
 RuleRow *
-rule_row_new (void)
+rule_row_new (Table    table,
+              uint16_t rule_id)
 {
-  return RULE_ROW (g_object_new (RULE_TYPE_ROW, NULL));
+  return RULE_ROW (g_object_new (RULE_TYPE_ROW,
+                                 "table", table,
+                                 "id", rule_id,
+                                 NULL));
 }
+

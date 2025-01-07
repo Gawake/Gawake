@@ -18,6 +18,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+/* TODO
+ * Signal to update a rule on ListBox
+ */
+
 #include <glib/gi18n.h>
 
 #include "rule-setup-dialog.h"
@@ -100,8 +104,7 @@ rule_setup_dialog_action_button_clicked (GtkButton *self,
   adw_combo_row_get_selected_item (dialog->mode_row);
 
   // Id
-  if (dialog->dialog_type == RULE_SETUP_DIALOG_TYPE_ADD)
-    rule.id = 0;
+  rule.id = dialog->rule_id;
 
   // Name
   g_snprintf (rule.name, RULE_NAME_LENGTH,
@@ -205,7 +208,6 @@ rule_setup_dialog_constructed (GObject *gobject)
         };
       gint status;
 
-      g_debug ("Getting rule with id %d and table %d", self->rule_id, self->table); // TODO
       status = rule_get_single (self->rule_id, self->table, &rule);
 
       if (status == EXIT_SUCCESS)
