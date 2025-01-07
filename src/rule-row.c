@@ -82,7 +82,7 @@ static GParamSpec *obj_properties[N_PROPS];
 // Signals
 enum
 {
-  SIGNAL_DELETED,
+  SIGNAL_RULE_DELETED,
 
   N_SIGNALS
 };
@@ -91,19 +91,25 @@ static guint obj_signals[N_SIGNALS];
 
 G_DEFINE_TYPE (RuleRow, rule_row, GTK_TYPE_LIST_BOX_ROW)
 
-static void
-rule_row_emit_deleted (RuleRow *self)
-{
-  g_signal_emit (self,
-                 obj_signals[SIGNAL_DELETED],
-                 0,
-                 (guint) self->table);
-}
-
 guint16
 rule_row_get_id (RuleRow *self)
 {
   return self->rule_id;
+}
+
+Table
+rule_row_get_table (RuleRow *self)
+{
+  return self->table;
+}
+
+static void
+rule_row_emit_deleted (RuleRow *self)
+{
+  g_signal_emit (self,
+                 obj_signals[SIGNAL_RULE_DELETED],
+                 0,
+                 (guint) self->table);
 }
 
 static void
@@ -391,7 +397,7 @@ rule_row_class_init (RuleRowClass *klass)
   G_OBJECT_CLASS (klass)->constructed = rule_row_constructed;
 
   // Signals
-  obj_signals[SIGNAL_DELETED] =
+  obj_signals[SIGNAL_RULE_DELETED] =
     g_signal_new ("rule-deleted",
                   RULE_TYPE_ROW,
                   G_SIGNAL_RUN_FIRST,
@@ -399,7 +405,7 @@ rule_row_class_init (RuleRowClass *klass)
                   NULL, NULL,
                   NULL,
                   G_TYPE_NONE,            // no return value
-                  1,                      // 2 arguments
+                  1,                      // 1 argument
                   G_TYPE_UINT);           // table
 }
 

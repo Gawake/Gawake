@@ -58,7 +58,64 @@ gawake_window_delete_rule (RuleRow  *self,
   gtk_list_box_remove ((table == TABLE_ON) ? window->turn_on_rules_listbox : window->turn_off_rules_listbox,
                        GTK_WIDGET (self));
 
+  // TODO check this
   g_clear_object (&self);
+}
+
+static void
+gawake_window_append_rule (GawakeWindow *self,
+                           Table         table,
+                           guint16       rule_id)
+{
+  RuleRow *row = rule_row_new (table, rule_id);
+
+  // TODO does signals must be somehow freed?
+  g_signal_connect (row,
+                    "rule-deleted",
+                    G_CALLBACK (gawake_window_delete_rule),
+                    self);
+
+  if (table == TABLE_ON)
+    gtk_list_box_append (self->turn_on_rules_listbox, GTK_WIDGET (row));
+  else
+    gtk_list_box_append (self->turn_off_rules_listbox, GTK_WIDGET (row));
+}
+
+static void
+gawake_window_edit_rule (RuleSetupDialog *self,
+                         gboolean         cancelled,
+                         gpointer         user_data)
+{
+  RuleRow *row = RULE_ROW (user_data);
+
+  if (!cancelled)
+    {
+      Rule rule;
+      Table table = rule_row_get_table (row);
+      guint16 rule_id = rule_row_get_id (row);
+      rule_get_single (rule_id, table, &rule);
+
+      rule_row_set_fields (row, rule);
+    }
+
+  rule_setup_dialog_finish (self);
+}
+
+static void
+gawake_window_add_rule (RuleSetupDialog *self,
+                        gboolean         cancelled,
+                        guint            _table,
+                        guint            _rule_id,
+                        gpointer         user_data)
+{
+  Table table = (Table) _table;
+  guint16 rule_id = (guint16) _rule_id;
+  GawakeWindow *window = GAWAKE_WINDOW (user_data);
+
+  if (!cancelled)
+    gawake_window_append_rule (window, table, rule_id);
+
+  rule_setup_dialog_finish (self);
 }
 
 static Table
@@ -85,24 +142,12 @@ gawake_window_populate_rules (GawakeWindow *self,
     return; // TODO emmit warning, set error to window
 
   for (guint16 row_idx = 0; row_idx < row_count; row_idx++)
-    {
-      RuleRow *row = rule_row_new (table, rules[row_idx].id);
-
-      // TODO does signals must be somehow freed?
-      g_signal_connect (row,
-                        "rule-deleted",
-                        G_CALLBACK (gawake_window_delete_rule),
-                        self);
-
-      if (table == TABLE_ON)
-        gtk_list_box_append (self->turn_on_rules_listbox, GTK_WIDGET (row));
-      else
-        gtk_list_box_append (self->turn_off_rules_listbox, GTK_WIDGET (row));
-    }
+    gawake_window_append_rule (self, table, rules[row_idx].id);
 
   free (rules);
 }
 
+// Editing a rule
 static void
 gawake_window_list_box_row_activated (GtkListBox    *self,
                                       GtkListBoxRow *row,
@@ -115,10 +160,17 @@ gawake_window_list_box_row_activated (GtkListBox    *self,
 
   dialog = GTK_WINDOW (rule_setup_dialog_new_edit (table, rule_id));
 
+  // TODO does signals must be somehow freed?
+  g_signal_connect (dialog,
+                    "rule-edited",
+                    G_CALLBACK (gawake_window_edit_rule),
+                    RULE_ROW (row));
+
   gtk_window_set_transient_for (dialog, GTK_WINDOW (window));
   gtk_window_present (dialog);
 }
 
+// Adding a rule
 static void
 gawake_window_add_button_clicked (GtkButton *self,
                                   gpointer   user_data)
@@ -128,6 +180,12 @@ gawake_window_add_button_clicked (GtkButton *self,
   Table table = gawake_window_get_table_from_page (window);
 
   dialog = GTK_WINDOW (rule_setup_dialog_new_add (table));
+
+  // TODO does signals must be somehow freed?
+  g_signal_connect (dialog,
+                    "rule-added",
+                    G_CALLBACK (gawake_window_add_rule),
+                    window);
 
   gtk_window_set_transient_for (dialog, GTK_WINDOW (window));
   gtk_window_present (dialog);

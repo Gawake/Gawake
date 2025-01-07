@@ -19,7 +19,7 @@
  */
 
 /* TODO
- * Signal to update a rule on ListBox
+ * Subclass
  */
 
 #include <glib/gi18n.h>
@@ -56,9 +56,11 @@ struct _RuleSetupDialog
   /* Instance variables */
   uint16_t             rule_id;
   Table                table;
+  gboolean             active;
   RuleSetupDialogType  dialog_type;
 };
 
+// Properties
 enum
 {
   PROP_ID = 1,
@@ -70,7 +72,42 @@ enum
 
 static GParamSpec *obj_properties[N_PROPS];
 
+// Signals
+enum
+{
+  SIGNAL_RULE_ADDED,
+  SIGNAL_RULE_EDITED,
+
+  N_SIGNALS
+};
+
+static guint obj_signals[N_SIGNALS];
+
 G_DEFINE_TYPE (RuleSetupDialog, rule_setup_dialog, ADW_TYPE_WINDOW)
+
+static void
+rule_setup_dialog_emit_added (RuleSetupDialog *self,
+                              gboolean         cancelled,
+                              Table            table,
+                              guint16          rule_id)
+{
+  g_signal_emit (self,
+                 obj_signals[SIGNAL_RULE_ADDED],
+                 0,
+                 cancelled,
+                 table,
+                 rule_id);
+}
+
+static void
+rule_setup_dialog_emit_edited (RuleSetupDialog *self,
+                               gboolean         cancelled)
+{
+  g_signal_emit (self,
+                 obj_signals[SIGNAL_RULE_EDITED],
+                 0,
+                 cancelled);
+}
 
 static gboolean
 rule_setup_dialog_show_leading_zeros (GtkSpinButton *spin,
@@ -87,12 +124,21 @@ rule_setup_dialog_show_leading_zeros (GtkSpinButton *spin,
    return TRUE;
 }
 
+void
+rule_setup_dialog_finish (RuleSetupDialog *self)
+{
+  gtk_window_close (GTK_WINDOW (self));
+}
 
 static void
 rule_setup_dialog_cancel_button_clicked (GtkButton *self,
                                          gpointer   user_data)
 {
-  gtk_window_close (GTK_WINDOW (user_data));
+  RuleSetupDialog *dialog = RULE_SETUP_DIALOG (user_data);
+  if (dialog->dialog_type == RULE_SETUP_DIALOG_TYPE_EDIT)
+    rule_setup_dialog_emit_edited (dialog, TRUE);
+  else
+    rule_setup_dialog_emit_added (dialog, TRUE, TABLE_LAST, 0);
 }
 
 static void
@@ -128,6 +174,8 @@ rule_setup_dialog_action_button_clicked (GtkButton *self,
   // Active
   if (dialog->dialog_type == RULE_SETUP_DIALOG_TYPE_ADD)
     rule.active = true;
+  else
+    rule.active = dialog->active;
 
   // Mode
   if (dialog->table == TABLE_OFF)
@@ -142,11 +190,22 @@ rule_setup_dialog_action_button_clicked (GtkButton *self,
   if (rule_validate_rule (&rule) == EXIT_SUCCESS)
     {
       if (dialog->dialog_type == RULE_SETUP_DIALOG_TYPE_ADD)
-        rule_add (&rule);
+        {
+          guint16 rule_id = rule_add (&rule);
+          if (rule_id == 0)
+            adw_toast_overlay_add_toast (dialog->toast,
+                                         adw_toast_new (_("Operation failed")));
+          else
+            rule_setup_dialog_emit_added (dialog, FALSE, dialog->table, rule_id);
+        }
       else
-        rule_edit (&rule);
-
-      gtk_window_close (GTK_WINDOW (dialog));
+        {
+          if (rule_edit (&rule) == EXIT_FAILURE)
+            adw_toast_overlay_add_toast (dialog->toast,
+                                         adw_toast_new (_("Operation failed")));
+          else
+            rule_setup_dialog_emit_edited (dialog, FALSE);
+        }
     }
   else
     {
@@ -220,6 +279,9 @@ rule_setup_dialog_constructed (GObject *gobject)
 
           // Minutes
           gtk_spin_button_set_value (self->m_spinbutton, (gdouble) rule.minutes);
+
+          // Active
+          self->active = rule.active;
 
           // Days
           gtk_toggle_button_set_active (self->day_0, (gboolean) rule.days[0]);
@@ -321,12 +383,37 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
                       G_PARAM_WRITABLE |
                       G_PARAM_STATIC_NAME);
 
-  G_OBJECT_CLASS (klass)->constructed = rule_setup_dialog_constructed;
   G_OBJECT_CLASS (klass)->set_property = rule_setup_dialog_set_property;
 
   g_object_class_install_properties (G_OBJECT_CLASS (klass),
                                      N_PROPS,
                                      obj_properties);
+  // Signals
+  obj_signals[SIGNAL_RULE_ADDED] =
+    g_signal_new ("rule-added",
+                  RULE_TYPE_SETUP_DIALOG,
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE,            // no return value
+                  3,                      // 3 arguments
+                  G_TYPE_BOOLEAN,         // cancelled
+                  G_TYPE_UINT,            // table
+                  G_TYPE_UINT);           // id
+
+  obj_signals[SIGNAL_RULE_EDITED] =
+    g_signal_new ("rule-edited",
+                  RULE_TYPE_SETUP_DIALOG,
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE,            // no return value
+                  1,                      // 1 argument
+                  G_TYPE_BOOLEAN);        // canceled
+
+  G_OBJECT_CLASS (klass)->constructed = rule_setup_dialog_constructed;
 }
 
 static void

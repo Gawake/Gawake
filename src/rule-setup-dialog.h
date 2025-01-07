@@ -34,5 +34,6 @@ G_DECLARE_FINAL_TYPE (RuleSetupDialog, rule_setup_dialog, RULE, SETUP_DIALOG, Ad
 
 RuleSetupDialog *rule_setup_dialog_new_add (Table table);
 RuleSetupDialog *rule_setup_dialog_new_edit (Table table, uint16_t rule_id);
+void rule_setup_dialog_finish (RuleSetupDialog *self);
 
 G_END_DECLS
