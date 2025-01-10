@@ -1,4 +1,4 @@
-/* rule-setup-dialog.h
+/* rule-setup-dialog-edit.h
  *
  * Copyright 2024-2025 Kelvin Novais
  *
@@ -20,29 +20,12 @@
 
 #pragma once
 
-#include <adwaita.h>
-
-#define ALLOW_MANAGING_RULES
-#include "database-connection/database-connection.h"
-#undef ALLOW_MANAGING_RULES
+#include "rule-setup-dialog.h"
 
 G_BEGIN_DECLS
 
-#define RULE_TYPE_SETUP_DIALOG (rule_setup_dialog_get_type ())
+G_DECLARE_FINAL_TYPE (RuleSetupDialogEdit, rule_setup_dialog_edit, RULE, SETUP_DIALOG_EDIT, RuleSetupDialog)
 
-G_DECLARE_DERIVABLE_TYPE (RuleSetupDialog, rule_setup_dialog, RULE, SETUP_DIALOG, AdwWindow)
-// G_DECLARE_FINAL_TYPE (RuleSetupDialog, rule_setup_dialog, RULE, SETUP_DIALOG, AdwWindow)
-
-struct _RuleSetupDialogClass
-{
-  AdwWindowClass parent_class;
-
-  // METHODS
-  /* Action to be performed by the dialog, when the user enters the data */
-  guint16 (*perform_action) (Rule *rule);
-};
-
-RuleSetupDialog *rule_setup_dialog_new (void);
-void rule_setup_dialog_finish (RuleSetupDialog *self);
+RuleSetupDialogEdit *rule_setup_dialog_edit_new (void);
 
 G_END_DECLS
