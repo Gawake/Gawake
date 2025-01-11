@@ -33,7 +33,7 @@
             <!-- Menu button -->
             <child type="end">
               <object class="GtkMenuButton">
-                <property name="primary">True</property>
+                <property name="primary">true</property>
                 <property name="icon-name">open-menu-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Menu</property>
                 <property name="menu-model">primary_menu</property>
@@ -51,30 +51,10 @@
               <object class="AdwViewStackPage">
                 <property name="name">on</property>
                 <property name="title" translatable="yes">Turn o_n rules</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <property name="icon_name">alarm-symbolic</property>
                 <property name="child">
-                  <object class="GtkScrolledWindow" id="turnon_list_view">
-                    <child>
-                      <object class="AdwClamp">
-                        <child>
-                          <object class="GtkListBox" id="turn_on_rules_listbox">
-                            <property name="vexpand">true</property>
-                            <property name="valign">start</property>
-                            <property name="selection-mode">none</property>
-                            <property name="activate-on-single-click">True</property>
-                            <property name="margin-top">18</property>
-                            <property name="margin-bottom">18</property>
-                            <property name="margin-start">12</property>
-                            <property name="margin-end">12</property>
-                            <style>
-                              <class name="boxed-list"/>
-                            </style>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
+                  <object class="AdwBin" id="turn_on_page" />
                 </property>
               </object>
             </child>
@@ -84,30 +64,10 @@
               <object class="AdwViewStackPage">
                 <property name="name">off</property>
                 <property name="title" translatable="yes">Turn o_ff rules</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <property name="icon-name">system-shutdown-symbolic</property>
                 <property name="child">
-                  <object class="GtkScrolledWindow" id="turnoff_list_view">
-                    <child>
-                      <object class="AdwClamp">
-                        <child>
-                          <object class="GtkListBox" id="turn_off_rules_listbox">
-                            <property name="vexpand">true</property>
-                            <property name="valign">start</property>
-                            <property name="selection-mode">none</property>
-                            <property name="activate-on-single-click">True</property>
-                            <property name="margin-top">18</property>
-                            <property name="margin-bottom">18</property>
-                            <property name="margin-start">12</property>
-                            <property name="margin-end">12</property>
-                            <style>
-                              <class name="boxed-list"/>
-                            </style>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
+                  <object class="AdwBin" id="turn_off_page" />
                 </property>
               </object>
             </child>
@@ -136,3 +96,4 @@
     </section>
   </menu>
 </interface>
+
