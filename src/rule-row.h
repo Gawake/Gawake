@@ -33,9 +33,8 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (RuleRow, rule_row, RULE, ROW, GtkListBoxRow)
 
 RuleRow *rule_row_new (Table table, uint16_t rule_id);
-void rule_row_set_fields (RuleRow *self, Rule rule);
 guint16 rule_row_get_id (RuleRow *self);
-Table rule_row_get_table (RuleRow *self);
+void rule_row_update_fields (RuleRow *self);
 
 G_END_DECLS
 

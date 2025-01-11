@@ -173,6 +173,7 @@ rule_row_set_repeats (RuleRow    *self,
   for (gint i = 0; i < 7; i++)
     sum += (days[i]) ? 1 : 0;
 
+  // FIXME
   // Set a string for repetition
   switch (sum)
     {
@@ -274,9 +275,13 @@ rule_row_delete_rule (GtkButton *self,
 }
 
 void
-rule_row_set_fields (RuleRow *self,
-                     Rule     rule)
+rule_row_update_fields (RuleRow *self)
 {
+  Rule rule;
+
+  if (rule_get_single (self->rule_id, self->table, &rule) == EXIT_FAILURE)
+    g_warning ("Failed to update rule properties");
+
   rule_row_set_id (self, rule.id);
   rule_row_set_title (self, rule.name);
   rule_row_set_time (self, rule.hour, rule.minutes);
@@ -438,4 +443,3 @@ rule_row_new (Table    table,
                                  "id", rule_id,
                                  NULL));
 }
-
