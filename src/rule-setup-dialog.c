@@ -52,12 +52,13 @@ enum
   PROP_ID = 1,
   PROP_TABLE,
   PROP_ACTIVE,
-  PROP_MODE,
   PROP_TITLE,
   PROP_ACTION_BUTTON_LABEL,
 
   N_PROPS
 };
+
+static GParamSpec *obj_properties[N_PROPS];
 
 // Signals
 enum
@@ -68,8 +69,6 @@ enum
 };
 
 static guint obj_signals[N_SIGNALS];
-
-static GParamSpec *obj_properties[N_PROPS];
 
 G_DEFINE_TYPE_WITH_PRIVATE (RuleSetupDialog, rule_setup_dialog, ADW_TYPE_WINDOW)
 
@@ -139,7 +138,7 @@ rule_setup_dialog_action_button_clicked (GtkButton *button,
   rule.active = priv->active;
 
   // Mode
-  rule.mode = priv->mode;
+  rule.mode = (Mode) adw_combo_row_get_selected (priv->mode_row);
 
   // Table
   rule.table = priv->table;
@@ -202,10 +201,6 @@ rule_setup_dialog_set_property (GObject      *object,
       priv->active = g_value_get_boolean (value);
       break;
 
-    case PROP_MODE:
-      priv->mode = (Mode) g_value_get_int (value);
-      break;
-
     case PROP_TITLE:
       gtk_window_set_title (GTK_WINDOW (self), g_value_get_string (value));
       break;
@@ -247,7 +242,7 @@ rule_setup_dialog_constructed (GObject *gobject)
   // Reveal/hide mode
   gtk_widget_set_visible (GTK_WIDGET (priv->mode_row), (priv->table == TABLE_OFF));
 
-  // If the rule has an id, set the dialog fields
+  // If the rule has an id, set the dialog fields (for editing it)
   if (priv->rule_id == 0)
     return;
 
@@ -321,7 +316,7 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
                       G_PARAM_STATIC_NAME);
 
   obj_properties[PROP_TABLE] =
-    g_param_spec_int ("mode",
+    g_param_spec_int ("table",
                       NULL, NULL,
                       0, (TABLE_LAST-1),
                       TABLE_ON,
@@ -336,15 +331,6 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
                           G_PARAM_CONSTRUCT_ONLY |
                           G_PARAM_WRITABLE |
                           G_PARAM_STATIC_NAME);
-
-  obj_properties[PROP_MODE] =
-    g_param_spec_int ("table",
-                      NULL, NULL,
-                      0, (TABLE_LAST-1),
-                      TABLE_ON,
-                      G_PARAM_CONSTRUCT_ONLY |
-                      G_PARAM_WRITABLE |
-                      G_PARAM_STATIC_NAME);
 
   obj_properties[PROP_TITLE] =
     g_param_spec_string ("title",

@@ -24,8 +24,10 @@
 
 G_BEGIN_DECLS
 
+#define RULE_TYPE_SETUP_DIALOG_EDIT (rule_setup_dialog_edit_get_type ())
+
 G_DECLARE_FINAL_TYPE (RuleSetupDialogEdit, rule_setup_dialog_edit, RULE, SETUP_DIALOG_EDIT, RuleSetupDialog)
 
-RuleSetupDialogEdit *rule_setup_dialog_edit_new (void);
+RuleSetupDialogEdit *rule_setup_dialog_edit_new (Table table, guint16 rule_id);
 
 G_END_DECLS

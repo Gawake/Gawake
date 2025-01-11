@@ -58,6 +58,7 @@ rule_setup_dialog_add_new (Table table)
                                               "active", TRUE,
                                               "title", (table == TABLE_ON) ?
                                                        _("Add turn on rule") : _("Add turn off rule"),
+                                              // translators: Rule Setup Dialog action button, for adding a rule
                                               "action-button-label", _("Add"),
                                               NULL));
 }

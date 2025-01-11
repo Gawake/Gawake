@@ -53,11 +53,12 @@ RuleSetupDialogEdit *
 rule_setup_dialog_edit_new (Table   table,
                             guint16 rule_id)
 {
-  return RULE_SETUP_DIALOG_ADD (g_object_new (RULE_TYPE_SETUP_DIALOG_ADD,
-                                              "table", table,
-                                              "id", rule_id,
-                                              "title", (table == TABLE_ON) ?
-                                                       _("Edit turn on rule") : _("Edit turn off rule"),
-                                              "action-button-label", _("Done"),
-                                              NULL));
+  return RULE_SETUP_DIALOG_EDIT (g_object_new (RULE_TYPE_SETUP_DIALOG_EDIT,
+                                               "table", table,
+                                               "id", rule_id,
+                                               "title", (table == TABLE_ON) ?
+                                                        _("Edit turn on rule") : _("Edit turn off rule"),
+                                               // translators: Rule Setup Dialog action button, for editing a rule
+                                               "action-button-label", _("Done"),
+                                               NULL));
 }
