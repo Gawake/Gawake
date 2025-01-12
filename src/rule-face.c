@@ -1,3 +1,25 @@
+/* rule-face.c
+ *
+ * Copyright 2024-2025 Kelvin Novais
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+#include <glib/gi18n.h>
+
 #include "rule-face.h"
 #include "rule-row.h"
 #include "rule-setup-dialog-edit.h"
@@ -13,6 +35,7 @@ struct _RuleFace
   GtkScrolledWindow   *list_view;
   GtkButton           *action_button;
   GtkListBox          *list_box;
+  AdwToastOverlay     *toast;
 
   /* Instace variables */
   guint16              row_count;
@@ -59,15 +82,22 @@ rule_face_delete_rule (RuleRow *row,
                        gpointer  user_data)
 {
   RuleFace *self = RULE_FACE (user_data);
-  Table table = (Table) _table;
-  guint16 rule_id = rule_row_get_id (row);
 
   gtk_list_box_remove (self->list_box, GTK_WIDGET (row));
   self->row_count--;
   rule_face_check_for_empty_view (self);
 
-  // TODO check this
   g_clear_object (&row);
+}
+
+static void
+rule_face_show_error_for_row (RuleRow     *row,
+                              const gchar *error,
+                              gpointer     user_data)
+{
+  RuleFace *self = RULE_FACE (user_data);
+
+  adw_toast_overlay_add_toast (self->toast, adw_toast_new (error));
 }
 
 static void
@@ -76,10 +106,14 @@ rule_face_append_rule (RuleFace *self,
 {
   RuleRow *row = rule_row_new (self->table, rule_id);
 
-  // TODO does signals must be somehow freed?
   g_signal_connect (row,
                     "rule-deleted",
                     G_CALLBACK (rule_face_delete_rule),
+                    self);
+
+  g_signal_connect (row,
+                    "error",
+                    G_CALLBACK (rule_face_show_error_for_row),
                     self);
 
   gtk_list_box_append (self->list_box, GTK_WIDGET (row));
@@ -131,7 +165,6 @@ rule_face_list_box_row_activated (GtkListBox    *list_box,
 
   dialog = GTK_WINDOW (rule_setup_dialog_edit_new (self->table, rule_id));
 
-  // TODO does signals must be somehow freed?
   g_signal_connect (dialog,
                     "done",
                     G_CALLBACK (rule_face_edit_rule),
@@ -155,7 +188,6 @@ rule_face_open_setup_add_dialog (RuleFace *self)
 
   dialog = GTK_WINDOW (rule_setup_dialog_add_new (self->table));
 
-  // TODO does signals must be somehow freed?
   g_signal_connect (dialog,
                     "done",
                     G_CALLBACK (rule_face_add_rule),
@@ -171,7 +203,10 @@ rule_face_populate_rules (RuleFace *self)
   guint16 row_count = 0;
 
   if (rule_get_all (self->table, &rules, &row_count) == EXIT_FAILURE)
-    return; // TODO emmit warning, set error to window
+    {
+      adw_toast_overlay_add_toast (self->toast, adw_toast_new (_("Failed to get rules")));
+      return;
+    }
 
   for (guint16 row_idx = 0; row_idx < row_count; row_idx++)
     rule_face_append_rule (self, rules[row_idx].id);
@@ -241,6 +276,7 @@ rule_face_class_init (RuleFaceClass *klass)
   gtk_widget_class_bind_template_child (widget_class, RuleFace, action_button);
   gtk_widget_class_bind_template_child (widget_class, RuleFace, list_box);
   gtk_widget_class_bind_template_child (widget_class, RuleFace, list_view);
+  gtk_widget_class_bind_template_child (widget_class, RuleFace, toast);
 
   // Properties
   obj_properties[PROP_TYPE] =
@@ -288,4 +324,3 @@ rule_face_new (RuleFaceType type)
                                   "type", type,
                                   NULL));
 }
-

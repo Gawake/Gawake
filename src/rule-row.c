@@ -83,6 +83,7 @@ static GParamSpec *obj_properties[N_PROPS];
 enum
 {
   SIGNAL_RULE_DELETED,
+  SIGNAL_ERROR,
 
   N_SIGNALS
 };
@@ -110,6 +111,16 @@ rule_row_emit_deleted (RuleRow *self)
                  obj_signals[SIGNAL_RULE_DELETED],
                  0,
                  (guint) self->table);
+}
+
+static void
+rule_row_emit_error (RuleRow     *self,
+                     const gchar *error)
+{
+  g_signal_emit (self,
+                 obj_signals[SIGNAL_ERROR],
+                 0,
+                 error);
 }
 
 static void
@@ -253,7 +264,9 @@ rule_row_change_active (GtkSwitch* self,
 
   status = rule_enable_disable (row->rule_id, row->table, (bool) state);
 
-  if (status != EXIT_FAILURE)
+  if (status == EXIT_FAILURE)
+    rule_row_emit_error (row, _("Failed to change rule state"));
+  else
     gtk_switch_set_state (self, state);
 
   return TRUE;
@@ -268,7 +281,9 @@ rule_row_delete_rule (GtkButton *self,
 
   status = rule_delete (row->rule_id, row->table);
 
-  if (status == EXIT_SUCCESS)
+  if (status == EXIT_FAILURE)
+    rule_row_emit_error (row, _("Failed to dele rule"));
+  else
     gtk_widget_set_visible (GTK_WIDGET (row), FALSE);
 
   rule_row_emit_deleted (row);
@@ -280,7 +295,10 @@ rule_row_update_fields (RuleRow *self)
   Rule rule;
 
   if (rule_get_single (self->rule_id, self->table, &rule) == EXIT_FAILURE)
-    g_warning ("Failed to update rule properties");
+    {
+      rule_row_emit_error (self, _("Failed to update rule"));
+      return;
+    }
 
   rule_row_set_id (self, rule.id);
   rule_row_set_title (self, rule.name);
@@ -298,7 +316,7 @@ static void
 rule_row_constructed (GObject *gobject)
 {
   RuleRow *self = RULE_ROW (gobject);
-    Rule rule =
+  Rule rule =
     {
       .id = 0,
       .name = "",
@@ -328,9 +346,8 @@ rule_row_constructed (GObject *gobject)
     }
   else
     {
-      // TODO emit warning as a signal
+      g_warning ("Failed to get rule at construct step");
     }
-
 }
 
 static void
@@ -412,6 +429,17 @@ rule_row_class_init (RuleRowClass *klass)
                   G_TYPE_NONE,            // no return value
                   1,                      // 1 argument
                   G_TYPE_UINT);           // table
+
+  obj_signals[SIGNAL_ERROR] =
+    g_signal_new ("error",
+                  RULE_TYPE_ROW,
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE,            // no return value
+                  1,                      // 1 argument
+                  G_TYPE_STRING);         // error message
 }
 
 static void

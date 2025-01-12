@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="RuleRow" parent="GtkListBoxRow">
-    <property name="activatable">True</property>
-    <property name="selectable">False</property>
+    <property name="activatable">true</property>
+    <property name="selectable">false</property>
     <child>
       <object class="GtkBox">
         <property name="valign">center</property>
@@ -10,7 +10,7 @@
         <property name="margin_end">12</property>
         <property name="margin_top">12</property>
         <property name="margin_bottom">12</property>
-        <property name="hexpand">True</property>
+        <property name="hexpand">true</property>
 
         <!-- TITLE -->
         <child>

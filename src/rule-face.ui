@@ -2,45 +2,49 @@
 <interface>
   <template class="RuleFace" parent="AdwBin">
     <child>
-      <object class="GtkStack" id="stack">
-        <property name="hhomogeneous">false</property>
-        <property name="vhomogeneous">false</property>
+      <object class="AdwToastOverlay" id="toast">
         <child>
-          <object class="AdwStatusPage" id="empty_view">
-            <property name="icon_name">alarm-symbolic</property>
-            <property name="vexpand">true</property>
-            <property name="hexpand">true</property>
+          <object class="GtkStack" id="stack">
+            <property name="hhomogeneous">false</property>
+            <property name="vhomogeneous">false</property>
             <child>
-              <object class="GtkButton" id="action_button">
-                <!-- <property name="action-name">win.new</property> -->
-                <property name="label" translatable="yes">Add Rule…</property>
-                <property name="use-underline">true</property>
-		            <property name="can-shrink">true</property>
-                <property name="halign">center</property>
-                <style>
-                  <class name="suggested-action"/>
-                  <class name="pill"/>
-                </style>
+              <object class="AdwStatusPage" id="empty_view">
+                <property name="icon_name">alarm-symbolic</property>
+                <property name="vexpand">true</property>
+                <property name="hexpand">true</property>
+                <child>
+                  <object class="GtkButton" id="action_button">
+                    <!-- <property name="action-name">win.new</property> -->
+                    <property name="label" translatable="yes">Add Rule…</property>
+                    <property name="use-underline">true</property>
+		                <property name="can-shrink">true</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="suggested-action"/>
+                      <class name="pill"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkScrolledWindow" id="list_view">
             <child>
-              <object class="AdwClamp">
+              <object class="GtkScrolledWindow" id="list_view">
                 <child>
-                  <object class="GtkListBox" id="list_box">
-                    <property name="valign">start</property>
-                    <property name="selection-mode">none</property>
-                    <property name="activate-on-single-click">true</property>
-                    <property name="margin-top">18</property>
-                    <property name="margin-bottom">18</property>
-                    <property name="margin-start">12</property>
-                    <property name="margin-end">12</property>
-                    <style>
-                      <class name="boxed-list"/>
-                    </style>
+                  <object class="AdwClamp">
+                    <child>
+                      <object class="GtkListBox" id="list_box">
+                        <property name="valign">start</property>
+                        <property name="selection-mode">none</property>
+                        <property name="activate-on-single-click">true</property>
+                        <property name="margin-top">18</property>
+                        <property name="margin-bottom">18</property>
+                        <property name="margin-start">12</property>
+                        <property name="margin-end">12</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
