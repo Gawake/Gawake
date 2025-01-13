@@ -98,12 +98,6 @@ rule_row_get_id (RuleRow *self)
   return self->rule_id;
 }
 
-Table
-rule_row_get_table (RuleRow *self)
-{
-  return self->table;
-}
-
 static void
 rule_row_emit_deleted (RuleRow *self)
 {
@@ -184,49 +178,49 @@ rule_row_set_repeats (RuleRow    *self,
   for (gint i = 0; i < 7; i++)
     sum += (days[i]) ? 1 : 0;
 
-  // FIXME
   // Set a string for repetition
-  switch (sum)
+  if (sum == 7)
     {
-    case 7:
       // ...if all days are set;
       gtk_label_set_text (self->repeats, _("Every Day"));
-      break;
+    }
 
-    case 5:
+  else if (sum == 5
+           && (!days[0] && !days[6]))
+    {
       // ...weekdays
-      if (!days[0] && !days[6])
-        {
-          gtk_label_set_text (self->repeats, gettext (terms_plural[TERMS_PLURAL_WEEKDAYS]));
-          break;
-        }
+      gtk_label_set_text (self->repeats, gettext (terms_plural[TERMS_PLURAL_WEEKDAYS]));
+    }
 
-    case 2:
+  else if (sum == 2
+           && (days[0] && days[6]))
+    {
       // ...weekends
-      if (days[0] && days[6])
-        {
-          gtk_label_set_text (self->repeats, gettext (terms_plural[TERMS_PLURAL_WEEKENDS]));
-          break;
-        }
+      gtk_label_set_text (self->repeats, gettext (terms_plural[TERMS_PLURAL_WEEKENDS]));
+    }
 
-    case 1:
+  else if (sum == 1)
+    {
       // ...if only one day is set
-      for (int i = 0; i < 7; i++) {
-        if (days[i])
-          {
-            gtk_label_set_text (self->repeats, gettext (days_plural[i]));
-            break;
-          }
-      }
-      break;
+      for (int i = 0; i < 7; i++)
+        {
+          if (days[i])
+            {
+              gtk_label_set_text (self->repeats, gettext (days_plural[i]));
+              break;
+            }
+        }
+    }
 
-    case 0:
+  else if (sum == 0)
+    {
       // ...if any day is set;
       // translators: the rule repeats any day of the week
       gtk_label_set_text (self->repeats, _("Any Day"));
-      break;
+    }
 
-    default:
+  else
+    {
       // ...if only some days are set
       for (gint i = 0; i < 7; i++)
         if (days[i])
@@ -240,8 +234,7 @@ rule_row_set_repeats (RuleRow    *self,
       repeated_days_formatted = g_string_free_and_steal (repeated_days);
       gtk_label_set_text (self->repeats, repeated_days_formatted);
       repeated_days = NULL;
-      break;
-  }
+    }
 
   if (repeated_days != NULL)
     g_string_free (repeated_days, TRUE);
