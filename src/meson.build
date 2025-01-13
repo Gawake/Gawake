@@ -8,7 +8,8 @@ gawake_sources = [
   'rule-setup-dialog.c',
   'rule-setup-dialog-add.c',
   'rule-setup-dialog-edit.c',
-  'rule-face.c'
+  'rule-face.c',
+  'days-row.c'
 ]
 
 gawake_sources += database_connection_sources
