@@ -160,6 +160,7 @@ rule_face_list_box_row_activated (GtkListBox    *list_box,
                                   gpointer       user_data)
 {
   RuleFace *self = RULE_FACE (user_data);
+  GtkWidget *parent = GTK_WIDGET (self);
   guint16 rule_id = rule_row_get_id (RULE_ROW (row));
   GtkWindow *dialog = NULL;
 
@@ -169,6 +170,16 @@ rule_face_list_box_row_activated (GtkListBox    *list_box,
                     "done",
                     G_CALLBACK (rule_face_edit_rule),
                     RULE_ROW (row));
+
+  while ((parent = gtk_widget_get_parent (parent)) != NULL)
+    {
+      g_debug ("Parent widget: %s", G_OBJECT_TYPE_NAME (parent));
+      if (GTK_IS_WINDOW (parent))
+        {
+          gtk_window_set_transient_for (dialog, GTK_WINDOW (parent));
+          break;
+        }
+    }
 
   gtk_window_present (dialog);
 }
@@ -185,6 +196,7 @@ void
 rule_face_open_setup_add_dialog (RuleFace *self)
 {
   GtkWindow *dialog = NULL;
+  GtkWidget *parent = GTK_WIDGET (self);
 
   dialog = GTK_WINDOW (rule_setup_dialog_add_new (self->table));
 
@@ -192,6 +204,16 @@ rule_face_open_setup_add_dialog (RuleFace *self)
                     "done",
                     G_CALLBACK (rule_face_add_rule),
                     self);
+
+  while ((parent = gtk_widget_get_parent (parent)) != NULL)
+    {
+      g_debug ("Parent widget: %s", G_OBJECT_TYPE_NAME (parent));
+      if (GTK_IS_WINDOW (parent))
+        {
+          gtk_window_set_transient_for (dialog, GTK_WINDOW (parent));
+          break;
+        }
+    }
 
   gtk_window_present (dialog);
 }
