@@ -6,6 +6,7 @@
     <property name="spacing">6</property>
     <child>
       <object class="GtkToggleButton" id="day_0">
+        <!-- translators: abbreviation for Sunday -->
         <property name="label" translatable="yes">S</property>
         <property name="tooltip-text" translatable="yes">Sunday</property>
         <style>
@@ -16,6 +17,7 @@
     </child>
     <child>
       <object class="GtkToggleButton" id="day_1">
+        <!-- translators: abbreviation for Monday -->
         <property name="label" translatable="yes">M</property>
         <property name="tooltip-text" translatable="yes">Monday</property>
         <style>
@@ -25,6 +27,7 @@
     </child>
     <child>
       <object class="GtkToggleButton" id="day_2">
+        <!-- translators: abbreviation for Tuesday -->
         <property name="label" translatable="yes">T</property>
         <property name="tooltip-text" translatable="yes">Tuesday</property>
         <style>
@@ -34,6 +37,7 @@
     </child>
     <child>
       <object class="GtkToggleButton" id="day_3">
+        <!-- translators: abbreviation for Wednesday -->
         <property name="label" translatable="yes">W</property>
         <property name="tooltip-text" translatable="yes">Wednesday</property>
         <style>
@@ -43,6 +47,7 @@
     </child>
     <child>
       <object class="GtkToggleButton" id="day_4">
+        <!-- translators: abbreviation for Thursday -->
         <property name="label" translatable="yes">T</property>
         <property name="tooltip-text" translatable="yes">Thursday</property>
         <style>
@@ -52,6 +57,7 @@
     </child>
     <child>
       <object class="GtkToggleButton" id="day_5">
+        <!-- translators: abbreviation for Friday -->
         <property name="label" translatable="yes">F</property>
         <property name="tooltip-text" translatable="yes">Friday</property>
         <style>
@@ -61,6 +67,7 @@
     </child>
     <child>
       <object class="GtkToggleButton" id="day_6">
+        <!-- translators: abbreviation for Saturday -->
         <property name="label" translatable="yes">S</property>
         <property name="tooltip-text" translatable="yes">Saturday</property>
         <style>

@@ -30,9 +30,8 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (DaysRow, days_row, DAYS, ROW, GtkBox)
 
-DaysRow *days_row_new (Table    table,
-                       guint16  rule_id,
-                       gboolean interactive);
+DaysRow *days_row_new (gboolean interactive);
 void days_row_get_activated (DaysRow *self, bool *days);
+void days_row_set_activated (DaysRow *self, bool days[7]);
 
 G_END_DECLS

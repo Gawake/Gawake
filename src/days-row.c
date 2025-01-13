@@ -67,21 +67,16 @@ days_row_get_activated (DaysRow *self,
   days[6] = gtk_toggle_button_get_active (self->day_6);
 }
 
-static void
-days_row_set_activated (DaysRow *self)
+void
+days_row_set_activated (DaysRow *self, bool days[7])
 {
-  Rule rule;
-
-  if (rule_get_single (self->rule_id, self->table, &rule) == EXIT_FAILURE)
-    return;
-
-  gtk_toggle_button_set_active (self->day_0, rule.days[0]);
-  gtk_toggle_button_set_active (self->day_1, rule.days[1]);
-  gtk_toggle_button_set_active (self->day_2, rule.days[2]);
-  gtk_toggle_button_set_active (self->day_3, rule.days[3]);
-  gtk_toggle_button_set_active (self->day_4, rule.days[4]);
-  gtk_toggle_button_set_active (self->day_5, rule.days[5]);
-  gtk_toggle_button_set_active (self->day_6, rule.days[6]);
+  gtk_toggle_button_set_active (self->day_0, days[0]);
+  gtk_toggle_button_set_active (self->day_1, days[1]);
+  gtk_toggle_button_set_active (self->day_2, days[2]);
+  gtk_toggle_button_set_active (self->day_3, days[3]);
+  gtk_toggle_button_set_active (self->day_4, days[4]);
+  gtk_toggle_button_set_active (self->day_5, days[5]);
+  gtk_toggle_button_set_active (self->day_6, days[6]);
 }
 
 static void
@@ -112,20 +107,58 @@ days_row_set_property (GObject      *object,
 }
 
 static void
+days_row_restore_toggle_button_state (GtkButton *self,
+                                      gpointer   user_data)
+{
+  GtkToggleButton *toggle_button = GTK_TOGGLE_BUTTON (self);
+  gboolean active = gtk_toggle_button_get_active (toggle_button);
+
+  // restore to previous state
+  gtk_toggle_button_set_active (toggle_button, !active);
+}
+
+static void
 days_row_constructed (GObject *gobject)
 {
   DaysRow *self = DAYS_ROW (gobject);
 
-  gtk_widget_set_sensitive (GTK_WIDGET (self->day_0), self->interactive);
-  gtk_widget_set_sensitive (GTK_WIDGET (self->day_1), self->interactive);
-  gtk_widget_set_sensitive (GTK_WIDGET (self->day_2), self->interactive);
-  gtk_widget_set_sensitive (GTK_WIDGET (self->day_3), self->interactive);
-  gtk_widget_set_sensitive (GTK_WIDGET (self->day_4), self->interactive);
-  gtk_widget_set_sensitive (GTK_WIDGET (self->day_5), self->interactive);
-  gtk_widget_set_sensitive (GTK_WIDGET (self->day_6), self->interactive);
+  if (!self->interactive)
+    {
+      g_signal_connect (self->day_0,
+                        "clicked",
+                        G_CALLBACK (days_row_restore_toggle_button_state),
+                        NULL);
 
-  if (self->rule_id != 0)
-    days_row_set_activated (self);
+      g_signal_connect (self->day_1,
+                        "clicked",
+                        G_CALLBACK (days_row_restore_toggle_button_state),
+                        NULL);
+
+      g_signal_connect (self->day_2,
+                        "clicked",
+                        G_CALLBACK (days_row_restore_toggle_button_state),
+                        NULL);
+
+      g_signal_connect (self->day_3,
+                        "clicked",
+                        G_CALLBACK (days_row_restore_toggle_button_state),
+                        NULL);
+
+      g_signal_connect (self->day_4,
+                        "clicked",
+                        G_CALLBACK (days_row_restore_toggle_button_state),
+                        NULL);
+
+      g_signal_connect (self->day_5,
+                        "clicked",
+                        G_CALLBACK (days_row_restore_toggle_button_state),
+                        NULL);
+
+      g_signal_connect (self->day_6,
+                        "clicked",
+                        G_CALLBACK (days_row_restore_toggle_button_state),
+                        NULL);
+    }
 }
 
 static void
@@ -190,13 +223,9 @@ days_row_init (DaysRow *self)
 }
 
 DaysRow *
-days_row_new (Table    table,
-              guint16  rule_id,
-              gboolean interactive)
+days_row_new (gboolean interactive)
 {
   return DAYS_ROW (g_object_new (DAYS_TYPE_ROW,
-                                 "id", rule_id,
-                                 "table", table,
                                  "interactive", interactive,
                                  NULL));
 }
