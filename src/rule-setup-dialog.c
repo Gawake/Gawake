@@ -21,6 +21,8 @@
 #include <glib/gi18n.h>
 
 #include "rule-setup-dialog.h"
+#include "rule-setup-dialog-edit.h"
+#include "days-row.h"
 
 typedef struct
 {
@@ -31,19 +33,18 @@ typedef struct
   GtkSpinButton         *m_spinbutton;
   AdwEntryRow           *name_entry;
   AdwComboRow           *mode_row;
-  GtkToggleButton       *day_0;
-  GtkToggleButton       *day_1;
-  GtkToggleButton       *day_2;
-  GtkToggleButton       *day_3;
-  GtkToggleButton       *day_4;
-  GtkToggleButton       *day_5;
-  GtkToggleButton       *day_6;
+  AdwBin                *days_row_bin;
+  AdwBin                *conflicting_days_row_bin;
+  GtkLabel              *conflicting_rule_title;
+  GtkLabel              *conflicting_rule_time;
+  GtkRevealer           *label_revealer;
 
   /* Instance variables */
   guint16               rule_id;
   Table                 table;
   gboolean              active;
   Mode                  mode;
+  RuleTimeValidator    *rule_time_validator;
 } RuleSetupDialogPrivate;
 
 // Properties
@@ -104,63 +105,134 @@ rule_setup_dialog_cancel_button_clicked (GtkButton *self,
 }
 
 static void
+rule_setup_dialog_set_conflicting_rule (RuleSetupDialog *self,
+                                        guint16          conflicting_rule_id)
+{
+  Rule rule;
+  RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
+  const gulong time_length = 6; // HH:MM AM'\n' == 9
+  gchar rule_time[time_length];
+
+  if (rule_get_single (conflicting_rule_id, priv->table, &rule) == EXIT_FAILURE)
+    return;
+
+  g_snprintf (rule_time, time_length,
+              "%02d:%02d", rule.hour, rule.minutes);
+
+  gtk_label_set_label (priv->conflicting_rule_title, rule.name);
+  gtk_label_set_label (priv->conflicting_rule_time, rule_time);
+  days_row_set_activated (DAYS_ROW (adw_bin_get_child (priv->conflicting_days_row_bin)),
+                          rule.days);
+  gtk_revealer_set_reveal_child (priv->label_revealer, TRUE);
+}
+
+static gboolean
+rule_setup_dialog_check_for_conflicting_rule (RuleSetupDialog *self,
+                                              Rule            *incoming_rule)
+{
+  RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
+  guint16 conflicting_rule_id = 0;
+
+  // When the rule is being edited, only check for conflicting time if days or time was changed
+  if (RULE_IS_SETUP_DIALOG_EDIT (self))
+    {
+      Rule old_rule;
+      gboolean days_changed = FALSE;
+
+      rule_get_single (priv->rule_id, priv->table, &old_rule);
+
+      for (gint i = 0; i < 7; i++)
+        {
+          if (incoming_rule->days[i] != old_rule.days[i])
+            {
+              days_changed = TRUE;
+              break;
+            }
+        }
+
+      if (incoming_rule->hour == old_rule.hour
+          && incoming_rule->minutes == old_rule.minutes
+          && !days_changed)
+        {
+          gtk_revealer_set_reveal_child (priv->label_revealer, FALSE);
+          return FALSE;
+        }
+    }
+
+  conflicting_rule_id = rule_validate_time (priv->rule_time_validator,
+                                            incoming_rule->hour,
+                                            incoming_rule->minutes,
+                                            incoming_rule->days);
+
+  if (conflicting_rule_id == 0)
+    {
+      gtk_revealer_set_reveal_child (priv->label_revealer, FALSE);
+      return FALSE;
+    }
+  else
+    {
+      rule_setup_dialog_set_conflicting_rule (self, conflicting_rule_id);
+      return TRUE;
+    }
+}
+
+static void
 rule_setup_dialog_action_button_clicked (GtkButton *button,
                                          gpointer   user_data)
 {
-  Rule rule;
+  Rule incoming_rule;
   RuleSetupDialog *self = RULE_SETUP_DIALOG (user_data);
   RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
   RuleSetupDialogClass *klass = RULE_SETUP_DIALOG_GET_CLASS (self);
 
   // Id
-  rule.id = priv->rule_id;
+  incoming_rule.id = priv->rule_id;
 
   // Name
-  g_snprintf (rule.name, RULE_NAME_LENGTH,
+  g_snprintf (incoming_rule.name, RULE_NAME_LENGTH,
               "%s", gtk_editable_get_text (GTK_EDITABLE (priv->name_entry)));
 
   // Hour
-  rule.hour = (uint8_t) gtk_spin_button_get_value (priv->h_spinbutton);
+  incoming_rule.hour = (uint8_t) gtk_spin_button_get_value (priv->h_spinbutton);
 
   // Minutes
-  rule.minutes = (uint8_t) gtk_spin_button_get_value (priv->m_spinbutton);
+  incoming_rule.minutes = (uint8_t) gtk_spin_button_get_value (priv->m_spinbutton);
 
   // Days
-  rule.days[0] = (bool) gtk_toggle_button_get_active (priv->day_0);
-  rule.days[1] = (bool) gtk_toggle_button_get_active (priv->day_1);
-  rule.days[2] = (bool) gtk_toggle_button_get_active (priv->day_2);
-  rule.days[3] = (bool) gtk_toggle_button_get_active (priv->day_3);
-  rule.days[4] = (bool) gtk_toggle_button_get_active (priv->day_4);
-  rule.days[5] = (bool) gtk_toggle_button_get_active (priv->day_5);
-  rule.days[6] = (bool) gtk_toggle_button_get_active (priv->day_6);
+  days_row_get_activated (DAYS_ROW (adw_bin_get_child (priv->days_row_bin)),
+                          incoming_rule.days);
 
   // Active
-  rule.active = priv->active;
+  incoming_rule.active = priv->active;
 
   // Mode
-  rule.mode = (Mode) adw_combo_row_get_selected (priv->mode_row);
+  incoming_rule.mode = (Mode) adw_combo_row_get_selected (priv->mode_row);
 
   // Table
-  rule.table = priv->table;
+  incoming_rule.table = priv->table;
 
-  // Validate and perform action
-  if (rule_validate_rule (&rule) == EXIT_SUCCESS)
-    {
-      rule.id = klass->perform_action (&rule);
-      if (rule.id == 0)
-        adw_toast_overlay_add_toast (priv->toast,
-                                     adw_toast_new (_("Operation failed")));
-      else
-        rule_setup_dialog_emit_done (self,
-                                     FALSE,
-                                     priv->table,
-                                     rule.id);
-    }
-  else
+  // Validate rule values
+  if (rule_validate_rule (&incoming_rule) == EXIT_FAILURE)
     {
       adw_toast_overlay_add_toast (priv->toast,
                                    adw_toast_new (_("Invalid rule attributes")));
+      return;
     }
+
+  // Check if the incoming rule is conflicting with another
+  if (rule_setup_dialog_check_for_conflicting_rule (self, &incoming_rule))
+    return;
+
+  // Perform action if rule is valid
+  incoming_rule.id = klass->perform_action (&incoming_rule);
+  if (incoming_rule.id == 0)
+    adw_toast_overlay_add_toast (priv->toast,
+                                 adw_toast_new (_("Operation failed")));
+  else
+    rule_setup_dialog_emit_done (self,
+                                 FALSE,
+                                 priv->table,
+                                 incoming_rule.id);
 }
 
 static gboolean
@@ -239,10 +311,15 @@ rule_setup_dialog_constructed (GObject *gobject)
 
   G_OBJECT_CLASS (rule_setup_dialog_parent_class)->constructed (gobject);
 
+  // Init time validator
+  priv->rule_time_validator = rule_validate_time_init (priv->table);
+  if (priv->rule_time_validator == NULL)
+    g_warning ("Failed to get RuleTimeValidator");
+
   // Reveal/hide mode
   gtk_widget_set_visible (GTK_WIDGET (priv->mode_row), (priv->table == TABLE_OFF));
 
-  // If the rule has an id, set the dialog fields (for editing it)
+  // If the rule has an id != 0, set the dialog fields (for editing it)
   if (priv->rule_id == 0)
     return;
 
@@ -261,13 +338,8 @@ rule_setup_dialog_constructed (GObject *gobject)
       priv->active = rule.active;
 
       // Days
-      gtk_toggle_button_set_active (priv->day_0, (gboolean) rule.days[0]);
-      gtk_toggle_button_set_active (priv->day_1, (gboolean) rule.days[1]);
-      gtk_toggle_button_set_active (priv->day_2, (gboolean) rule.days[2]);
-      gtk_toggle_button_set_active (priv->day_3, (gboolean) rule.days[3]);
-      gtk_toggle_button_set_active (priv->day_4, (gboolean) rule.days[4]);
-      gtk_toggle_button_set_active (priv->day_5, (gboolean) rule.days[5]);
-      gtk_toggle_button_set_active (priv->day_6, (gboolean) rule.days[6]);
+      days_row_set_activated (DAYS_ROW (adw_bin_get_child (priv->days_row_bin)),
+                              rule.days);
 
       // Mode
       if (priv->table == TABLE_OFF)
@@ -278,6 +350,23 @@ rule_setup_dialog_constructed (GObject *gobject)
       adw_toast_overlay_add_toast (priv->toast,
                                    adw_toast_new (_("Failed to get rule attributes")));
     }
+}
+
+static void
+rule_setup_dialog_finalize (GObject *object)
+{
+  G_OBJECT_CLASS (rule_setup_dialog_parent_class)->finalize (object);
+}
+
+static void
+rule_setup_dialog_dispose (GObject* object)
+{
+  RuleSetupDialog *self = RULE_SETUP_DIALOG (object);
+  RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
+
+  rule_validate_time_finalize (&priv->rule_time_validator);
+
+  G_OBJECT_CLASS (rule_setup_dialog_parent_class)->dispose (object);
 }
 
 static void
@@ -296,13 +385,11 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, m_spinbutton);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, name_entry);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, mode_row);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, day_0);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, day_1);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, day_2);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, day_3);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, day_4);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, day_5);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, day_6);
+  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, label_revealer);
+  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, days_row_bin);
+  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_days_row_bin);
+  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_rule_title);
+  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_rule_time);
 
   // Properties
   /* Pass an id != 0 to set the rule values in the dialog (for editing the rule) */
@@ -372,6 +459,9 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
 
   // Constructor
   G_OBJECT_CLASS (klass)->constructed = rule_setup_dialog_constructed;
+
+  G_OBJECT_CLASS (klass)->dispose = rule_setup_dialog_dispose;
+  G_OBJECT_CLASS (klass)->finalize = rule_setup_dialog_finalize;
 }
 
 static void
@@ -401,11 +491,19 @@ rule_setup_dialog_init (RuleSetupDialog *self)
                     G_CALLBACK (rule_setup_dialog_show_leading_zeros),
                     NULL);
 
+  // Widgets
+  adw_bin_set_child (priv->days_row_bin,
+                     GTK_WIDGET (days_row_new (TRUE)));
+
+  adw_bin_set_child (priv->conflicting_days_row_bin,
+                     GTK_WIDGET (days_row_new (FALSE)));
+
   // Values
   priv->rule_id = 0;
   priv->table = TABLE_LAST;
   priv->active = TRUE;
   priv->mode = MODE_LAST;
+  priv->rule_time_validator = NULL;
 
   adw_combo_row_set_selected (priv->mode_row, (guint) MODE_OFF);
 }

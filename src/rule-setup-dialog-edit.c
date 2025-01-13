@@ -1,4 +1,4 @@
-/* rule-setup-dialogedit.c
+/* rule-setup-dialog-edit.c
  *
  * Copyright 2024-2025 Kelvin Novais
  *
