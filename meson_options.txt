@@ -5,3 +5,5 @@
 option('PREPROCESSOR_DEBUG', type: 'integer', min: 0, max: 3, value: 0, description: 'Add extra debugging information')
 
 option('MODE_ALWAYS_ON', type: 'boolean', value: false, description: 'Set rtcwake mode always to on')
+
+option('FLATPAK', type: 'boolean', value: false, description: 'Compile targeting Flatpak package')

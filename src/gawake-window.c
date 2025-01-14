@@ -22,6 +22,7 @@
 
 #include "gawake-window.h"
 #include "rule-face.h"
+#include "error-dialog.h"
 
 #define ALLOW_MANAGING_RULES
 #define ALLOW_MANAGING_CONFIGURATION
@@ -42,6 +43,8 @@ struct _GawakeWindow
   RuleFace                *turn_off_page_face;
 
   /* Instance variables */
+  GtkWindow               *error_dialog;
+  ErrorDialogType          error_dialog_type;
   gint                     database_connection_status;
 };
 
@@ -73,6 +76,33 @@ gawake_window_add_button_clicked (GtkButton *self,
     rule_face_open_setup_add_dialog (window->turn_off_page_face);
 }
 
+static gboolean
+gawake_window_on_error_dialog_close_request (GtkWindow *window,
+                                             gpointer   user_data)
+{
+  GawakeWindow *self = GAWAKE_WINDOW (user_data);
+
+  gtk_window_close (GTK_WINDOW (self));
+
+  return FALSE;
+}
+
+static void
+gawake_window_show_error_dialog (gpointer user_data)
+{
+  GawakeWindow *self = GAWAKE_WINDOW (user_data);
+
+  self->error_dialog = GTK_WINDOW (error_dialog_new (self->error_dialog_type));
+
+  g_signal_connect (self->error_dialog,
+                    "close-request",
+                    G_CALLBACK (gawake_window_on_error_dialog_close_request),
+                    self);
+
+  gtk_window_set_transient_for (self->error_dialog, GTK_WINDOW (self));
+  gtk_window_present (self->error_dialog);
+}
+
 static void
 gawake_window_class_init (GawakeWindowClass *klass)
 {
@@ -81,6 +111,7 @@ gawake_window_class_init (GawakeWindowClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/io/github/gawake/Gawake/gawake-window.ui");
 
+  // Widgets
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, turn_on_page);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, turn_off_page);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, add_button);
@@ -90,6 +121,8 @@ gawake_window_class_init (GawakeWindowClass *klass)
 static void
 gawake_window_init (GawakeWindow *self)
 {
+  self->error_dialog = NULL;
+
   gtk_widget_init_template (GTK_WIDGET (self));
 
   // Signals
@@ -98,16 +131,32 @@ gawake_window_init (GawakeWindow *self)
                     G_CALLBACK (gawake_window_add_button_clicked),
                     self);
 
-  // Database
+  // Check user group
+  if (check_user_group ())
+    {
+      self->error_dialog_type = ERROR_DIALOG_TYPE_USER_GROUP_ERROR;
+      g_timeout_add_once (100, gawake_window_show_error_dialog, self);
+      return;
+    }
+
+  // Database connection
   self->database_connection_status = connect_database (false);
 
-  /* if (self->database_connection_status == SQLITE_OK) */
-  /*   { */
-  /*   } */
+  if (self->database_connection_status == SQLITE_OK)
+    {
+      self->turn_on_page_face = rule_face_new (RULE_FACE_TYPE_TURN_ON);
+      adw_bin_set_child (self->turn_on_page, GTK_WIDGET (self->turn_on_page_face));
 
-  self->turn_on_page_face = rule_face_new (RULE_FACE_TYPE_TURN_ON);
-  adw_bin_set_child (self->turn_on_page, GTK_WIDGET (self->turn_on_page_face));
+      self->turn_off_page_face = rule_face_new (RULE_FACE_TYPE_TURN_OFF);
+      adw_bin_set_child (self->turn_off_page, GTK_WIDGET (self->turn_off_page_face));
+    }
+  else
+    {
+      self->error_dialog_type = ERROR_DIALOG_TYPE_DATABASE_ERROR;
+      g_timeout_add_once (100, gawake_window_show_error_dialog, self);
+    }
 
-  self->turn_off_page_face = rule_face_new (RULE_FACE_TYPE_TURN_OFF);
-  adw_bin_set_child (self->turn_off_page, GTK_WIDGET (self->turn_off_page_face));
+  // TODO
+  self->error_dialog_type = ERROR_DIALOG_TYPE_USER_GROUP_ERROR;
+  g_timeout_add_once (100, gawake_window_show_error_dialog, self);
 }
