@@ -96,16 +96,21 @@ gawake_application_about_action (GSimpleAction *action,
 
   window = gtk_application_get_active_window (GTK_APPLICATION (self));
 
-  /* TODO */
-  /* adw_show_about_dialog (GTK_WIDGET (window), */
-  gtk_show_about_dialog (GTK_WINDOW (window),
+  adw_show_about_window (GTK_WINDOW (window),
                          "application-name", "Gawake",
                          "application-icon", "io.github.gawake.Gawake",
                          "developer-name", "Kelvin Novais",
+                         // TODO
+                         /* "comments", _("A Linux software to make your PC wake up on a scheduled time." */
+                         /*               "\n\nIf you liked the app ❤️, consider giving it a star ⭐:"), */
+                         /* "issue-url", "https://github.com/Gawake/Gawake/issues", */
+                         /* "website", "https://github.com/Gawake/Gawake", */
+                         // Translators: Replace "translator-credits" with your names, one name per line
                          "translator-credits", _("translator-credits"),
                          "version", "0.1.0",
                          "developers", developers,
                          "copyright", "© 2024 Kelvin Novais",
+                         "license-type", GTK_LICENSE_GPL_3_0,
                          NULL);
 }
 

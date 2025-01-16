@@ -173,6 +173,7 @@ rule_row_set_repeats (RuleRow    *self,
 {
   gint sum = 0;
   GString *repeated_days = g_string_new ("");
+  g_autoptr (GBytes) repeated_days_bytes = NULL;
   g_autofree gchar *repeated_days_formatted = NULL;
 
   for (gint i = 0; i < 7; i++)
@@ -230,8 +231,7 @@ rule_row_set_repeats (RuleRow    *self,
 
       // remove the last unnecessary ", "
       repeated_days = g_string_truncate (repeated_days, repeated_days->len - 2);
-
-      repeated_days_formatted = g_string_free_and_steal (repeated_days);
+      repeated_days_formatted = g_string_free (repeated_days, FALSE);
       gtk_label_set_text (self->repeats, repeated_days_formatted);
       repeated_days = NULL;
     }

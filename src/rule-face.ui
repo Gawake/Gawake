@@ -16,7 +16,8 @@
                   <object class="GtkButton" id="action_button">
                     <property name="label" translatable="yes">Add Rule…</property>
                     <property name="use-underline">true</property>
-		                <property name="can-shrink">true</property>
+                    <!-- TODO newer versions of Adw -->
+		                <!-- <property name="can-shrink">true</property> -->
                     <property name="halign">center</property>
                     <style>
                       <class name="suggested-action"/>

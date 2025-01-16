@@ -9,7 +9,8 @@
         "--share=ipc",
         "--socket=fallback-x11",
         "--device=dri",
-        "--socket=wayland"
+        "--socket=wayland",
+        "--filesystem=/var/lib/gawake:create"
     ],
     "cleanup" : [
         "/include",
@@ -29,12 +30,13 @@
             "buildsystem" : "meson",
             "sources" : [
                 {
-                    "type" : "git",
-                    "url" : "file:///mnt/34c4b3c0-acbb-4d0f-99ec-9a126a8110a2/Developing"
+                    "type" : "dir",
+                    "url" : "."
                 }
             ],
             "config-opts" : [
-                "--libdir=lib"
+                "--libdir=lib",
+                "-DFLATPAK=true"
             ]
         }
     ],

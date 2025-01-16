@@ -32,6 +32,7 @@ struct _ErrorDialog
   GtkButton                 *action_button;
   GtkButton                 *ok_button;
   AdwToastOverlay           *toast;
+  GtkLabel                  *extended_description;
 
   // Instance varables
   ErrorDialogType            dialog_type;
@@ -76,7 +77,6 @@ error_dialog_ok_button_clicked (GtkButton *button,
   gtk_window_close (GTK_WINDOW (self));
 }
 
-#if !FLATPAK
 static void
 error_dialog_action_button_clicked (GtkButton *button,
                                     gpointer   user_data)
@@ -94,13 +94,11 @@ error_dialog_action_button_clicked (GtkButton *button,
     adw_toast_overlay_add_toast (self->toast,
                                  adw_toast_new (_("Failed to add user to group")));
 }
-#endif
 
 static void
 error_dialog_constructed (GObject *gobject)
 {
-  __attribute__((unused)) const gchar *username = g_get_user_name ();
-  g_autofree gchar *message = NULL;
+  g_autofree gchar *extended_description_message = NULL;
   ErrorDialog *self = ERROR_DIALOG (gobject);
 
   switch (self->dialog_type)
@@ -109,30 +107,35 @@ error_dialog_constructed (GObject *gobject)
       adw_status_page_set_icon_name (self->status_page, "dialog-error-symbolic");
       adw_status_page_set_title (self->status_page, _("Database error"));
       adw_status_page_set_description (self->status_page, _("Failed to connect to the database"));
+#if FLATPAK
+      extended_description_message =
+        g_strconcat (
+          // Translatable
+          _("Make sure that:\n"\
+          /* TODO update url */
+          "[1] Gawake server is installed. See <a href='https://github.com/Gawake'>this</a> for more information;\n"\
+          "\n[2] You're in gawake group, by running:\n"),
+          // Not translatable
+          "<span font_family='monospace' font_weight='bold'>sudo usermod -aG gawake ",
+          g_get_user_name (),
+          "</span>",
+          NULL
+        );
+      gtk_label_set_markup (self->extended_description, extended_description_message);
+#endif
       break;
 
     case ERROR_DIALOG_TYPE_USER_GROUP_ERROR:
-      message = g_strconcat (_("You are not in the Gawake group"),
-#if FLATPAK
-                             _("\nTo add yourself to gawake's group, run:\n"),
-                             "<span font_family='monospace' font_weight='bold'>sudo usermod -aG gawake ",
-                             username,
-                             "</span>",
-#endif
-                             NULL);
-
-#if !FLATPAK
       gtk_button_set_label (self->action_button, _("Add user to group"));
       gtk_widget_set_visible (GTK_WIDGET (self->action_button), TRUE);
       g_signal_connect (self->action_button,
                         "clicked",
                         G_CALLBACK (error_dialog_action_button_clicked),
                         self);
-#endif
 
       adw_status_page_set_icon_name (self->status_page, "system-users-symbolic");
       adw_status_page_set_title (self->status_page, _("System group error"));
-      adw_status_page_set_description (self->status_page, message);
+      adw_status_page_set_description (self->status_page, _("You are not in the Gawake group"));
       break;
 
     case ERROR_DIALOG_TYPE_LAST:
@@ -154,6 +157,7 @@ error_dialog_class_init (ErrorDialogClass *klass)
   gtk_widget_class_bind_template_child (widget_class, ErrorDialog, action_button);
   gtk_widget_class_bind_template_child (widget_class, ErrorDialog, ok_button);
   gtk_widget_class_bind_template_child (widget_class, ErrorDialog, toast);
+  gtk_widget_class_bind_template_child (widget_class, ErrorDialog, extended_description);
 
   // Properties
   obj_properties[PROP_DIALOG_TYPE] =

@@ -129,6 +129,7 @@ gawake_window_init (GawakeWindow *self)
                     G_CALLBACK (gawake_window_add_button_clicked),
                     self);
 
+#if !FLATPAK
   // Check user group
   if (check_user_group ())
     {
@@ -136,6 +137,7 @@ gawake_window_init (GawakeWindow *self)
       g_timeout_add_once (100, gawake_window_show_error_dialog, self);
       return;
     }
+#endif
 
   // Database connection
   self->database_connection_status = connect_database (false);
