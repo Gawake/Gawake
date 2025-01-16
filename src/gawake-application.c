@@ -1,6 +1,6 @@
 /* gawake-application.c
  *
- * Copyright 2024 Kelvin Novais
+ * Copyright 2024-2025 Kelvin Novais
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 
 #include "gawake-application.h"
 #include "gawake-window.h"
+#include "gawake-preferences.h"
 
 struct _GawakeApplication
 {
@@ -41,6 +42,20 @@ gawake_application_new (const char        *application_id,
                        "application-id", application_id,
                        "flags", flags,
                        NULL);
+}
+
+static void
+gawake_application_preferences_action (GSimpleAction *action,
+                                       GVariant      *parameter,
+                                       gpointer       app)
+{
+  GawakePreferences *preferences;
+  GtkWindow *window;
+
+  window = gtk_application_get_active_window (GTK_APPLICATION (app));
+  preferences = gawake_preferences_new ();
+  gtk_window_set_transient_for (GTK_WINDOW (preferences), GTK_WINDOW (window));
+  gtk_window_present (GTK_WINDOW (preferences));
 }
 
 static void
@@ -109,6 +124,7 @@ gawake_application_quit_action (GSimpleAction *action,
 static const GActionEntry app_actions[] = {
   { "quit", gawake_application_quit_action },
   { "about", gawake_application_about_action },
+  { "preferences", gawake_application_preferences_action }
 };
 
 static void

@@ -25,9 +25,7 @@
 #include "error-dialog.h"
 
 #define ALLOW_MANAGING_RULES
-#define ALLOW_MANAGING_CONFIGURATION
 # include "database-connection/database-connection.h"
-#undef ALLOW_MANAGING_CONFIGURATION
 #undef ALLOW_MANAGING_RULES
 
 struct _GawakeWindow
@@ -155,8 +153,4 @@ gawake_window_init (GawakeWindow *self)
       self->error_dialog_type = ERROR_DIALOG_TYPE_DATABASE_ERROR;
       g_timeout_add_once (100, gawake_window_show_error_dialog, self);
     }
-
-  // TODO
-  self->error_dialog_type = ERROR_DIALOG_TYPE_USER_GROUP_ERROR;
-  g_timeout_add_once (100, gawake_window_show_error_dialog, self);
 }

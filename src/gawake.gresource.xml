@@ -7,6 +7,7 @@
     <file preprocess="xml-stripblanks">rule-face.ui</file>
     <file preprocess="xml-stripblanks">days-row.ui</file>
     <file preprocess="xml-stripblanks">error-dialog.ui</file>
+    <file preprocess="xml-stripblanks">gawake-preferences.ui</file>
 
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
 
