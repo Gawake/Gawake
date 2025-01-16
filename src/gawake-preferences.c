@@ -34,7 +34,8 @@ struct _GawakePreferences
   AdwActionRow                   *shutdown_action_row;
   AdwComboRow                    *mode_row;
   AdwActionRow                   *localtime_action_row;
-  GtkAdjustment                  *notification_adjustment;
+  AdwActionRow                   *notification_time_row;
+  GtkSpinButton                  *notification_spin_button;
 
   GtkWidget                      *shutdown_switch;
   GtkWidget                      *localtime_switch;
@@ -69,13 +70,13 @@ gawake_preferences_switch_state_set (GtkSwitch *switch_button,
 }
 
 static void
-gawake_preferences_notification_changed (GtkAdjustment *adjustment,
+gawake_preferences_notification_changed (GtkSpinButton *spin_button,
                                          gpointer       user_data)
 {
   gdouble new_value = 1;
   GawakePreferences *self = GAWAKE_PREFERENCES (user_data);
 
-  new_value = gtk_adjustment_get_value (adjustment);
+  new_value = gtk_spin_button_get_value (spin_button);
 
   if (configuration_set_notification_time ((int) new_value) == EXIT_FAILURE)
     adw_preferences_window_add_toast (ADW_PREFERENCES_WINDOW (self),
@@ -108,7 +109,7 @@ gawake_preferences_class_init (GawakePreferencesClass *klass)
   gtk_widget_class_bind_template_child (widget_class, GawakePreferences, shutdown_action_row);
   gtk_widget_class_bind_template_child (widget_class, GawakePreferences, mode_row);
   gtk_widget_class_bind_template_child (widget_class, GawakePreferences, localtime_action_row);
-  gtk_widget_class_bind_template_child (widget_class, GawakePreferences, notification_adjustment);
+  gtk_widget_class_bind_template_child (widget_class, GawakePreferences, notification_time_row);
 }
 
 static void
@@ -132,9 +133,10 @@ gawake_preferences_init (GawakePreferences *self)
       // Note [1]
       self->shutdown_switch = gtk_switch_new ();
       gtk_widget_set_valign (self->shutdown_switch, GTK_ALIGN_CENTER);
-      adw_action_row_add_suffix (self->shutdown_action_row, self->shutdown_switch);
       gtk_switch_set_state (GTK_SWITCH (self->shutdown_switch), shutdown_fail);
       gtk_switch_set_active (GTK_SWITCH (self->shutdown_switch), shutdown_fail);
+      adw_action_row_add_suffix (self->shutdown_action_row, self->shutdown_switch);
+      adw_action_row_set_activatable_widget (self->shutdown_action_row, self->shutdown_switch);
       g_signal_connect (self->shutdown_switch,
                         "state-set",
                         G_CALLBACK (gawake_preferences_switch_state_set),
@@ -146,12 +148,17 @@ gawake_preferences_init (GawakePreferences *self)
     {
       adw_preferences_window_add_toast (ADW_PREFERENCES_WINDOW (self),
                                         adw_toast_new (_("Failed to get configuration")));
-      gtk_widget_set_sensitive (GTK_WIDGET (self->notification_adjustment), FALSE);
+      gtk_widget_set_sensitive (GTK_WIDGET (self->notification_spin_button), FALSE);
     }
   else
     {
-      gtk_adjustment_set_value (self->notification_adjustment, (gdouble) notification_time);
-      g_signal_connect (self->notification_adjustment,
+      self->notification_spin_button = GTK_SPIN_BUTTON (gtk_spin_button_new_with_range (1, 60, 1));
+      gtk_spin_button_set_value (self->notification_spin_button, (gdouble) notification_time);
+      gtk_widget_add_css_class (GTK_WIDGET (self->notification_spin_button), "spin");
+      gtk_widget_set_valign (GTK_WIDGET (self->notification_spin_button), GTK_ALIGN_CENTER);
+      adw_action_row_add_suffix (self->notification_time_row, GTK_WIDGET (self->notification_spin_button));
+      adw_action_row_set_activatable_widget (self->notification_time_row, GTK_WIDGET (self->notification_spin_button));
+      g_signal_connect (self->notification_spin_button,
                         "value-changed",
                         G_CALLBACK (gawake_preferences_notification_changed),
                         self);
@@ -181,9 +188,10 @@ gawake_preferences_init (GawakePreferences *self)
       // Note [1]
       self->localtime_switch = gtk_switch_new ();
       gtk_widget_set_valign (self->localtime_switch, GTK_ALIGN_CENTER);
-      adw_action_row_add_suffix (self->localtime_action_row, self->localtime_switch);
       gtk_switch_set_state (GTK_SWITCH (self->localtime_switch), use_localtime);
       gtk_switch_set_active (GTK_SWITCH (self->localtime_switch), use_localtime);
+      adw_action_row_add_suffix (self->localtime_action_row, self->localtime_switch);
+      adw_action_row_set_activatable_widget (self->localtime_action_row, self->localtime_switch);
       g_signal_connect (self->localtime_switch,
                         "state-set",
                         G_CALLBACK (gawake_preferences_switch_state_set),
