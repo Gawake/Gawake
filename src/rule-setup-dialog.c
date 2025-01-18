@@ -23,14 +23,13 @@
 #include "rule-setup-dialog.h"
 #include "rule-setup-dialog-edit.h"
 #include "days-row.h"
+#include "time-chooser.h"
 
 typedef struct
 {
   AdwToastOverlay       *toast;
   GtkButton             *cancel_button;
   GtkButton             *action_button;
-  GtkSpinButton         *h_spinbutton;
-  GtkSpinButton         *m_spinbutton;
   AdwEntryRow           *name_entry;
   AdwComboRow           *mode_row;
   AdwBin                *days_row_bin;
@@ -38,6 +37,7 @@ typedef struct
   GtkLabel              *conflicting_rule_title;
   GtkLabel              *conflicting_rule_time;
   GtkRevealer           *label_revealer;
+  TimeChooser           *time_chooser;
 
   /* Instance variables */
   guint16               rule_id;
@@ -193,10 +193,10 @@ rule_setup_dialog_action_button_clicked (GtkButton *button,
               "%s", gtk_editable_get_text (GTK_EDITABLE (priv->name_entry)));
 
   // Hour
-  incoming_rule.hour = (uint8_t) gtk_spin_button_get_value (priv->h_spinbutton);
+  incoming_rule.hour = (uint8_t) time_chooser_get_hour (priv->time_chooser);
 
   // Minutes
-  incoming_rule.minutes = (uint8_t) gtk_spin_button_get_value (priv->m_spinbutton);
+  incoming_rule.minutes = (uint8_t) time_chooser_get_minutes (priv->time_chooser);
 
   // Days
   days_row_get_activated (DAYS_ROW (adw_bin_get_child (priv->days_row_bin)),
@@ -233,21 +233,6 @@ rule_setup_dialog_action_button_clicked (GtkButton *button,
                                  FALSE,
                                  priv->table,
                                  incoming_rule.id);
-}
-
-static gboolean
-rule_setup_dialog_show_leading_zeros (GtkSpinButton *spin,
-                                      gpointer       data)
-{
-   gchar *text;
-   gint value;
-
-   value = gtk_spin_button_get_value_as_int (spin);
-   text = g_strdup_printf ("%02d", value);
-   gtk_editable_set_text (GTK_EDITABLE (spin), text);
-   g_free (text);
-
-   return TRUE;
 }
 
 static void
@@ -329,10 +314,10 @@ rule_setup_dialog_constructed (GObject *gobject)
       gtk_editable_set_text (GTK_EDITABLE (priv->name_entry), rule.name);
 
       // Hour
-      gtk_spin_button_set_value (priv->h_spinbutton, (gdouble) rule.hour);
+      time_chooser_set_hour (priv->time_chooser, (gdouble) rule.hour);
 
       // Minutes
-      gtk_spin_button_set_value (priv->m_spinbutton, (gdouble) rule.minutes);
+      time_chooser_set_minutes (priv->time_chooser, (gdouble) rule.minutes);
 
       // Active
       priv->active = rule.active;
@@ -381,8 +366,6 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, toast);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, cancel_button);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, action_button);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, h_spinbutton);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, m_spinbutton);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, name_entry);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, mode_row);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, label_revealer);
@@ -390,6 +373,7 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_days_row_bin);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_rule_title);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_rule_time);
+  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, time_chooser);
 
   // Properties
   /* Pass an id != 0 to set the rule values in the dialog (for editing the rule) */
@@ -468,6 +452,10 @@ static void
 rule_setup_dialog_init (RuleSetupDialog *self)
 {
   RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
+
+  // Esure my custom widgets types
+  g_type_ensure (TIME_TYPE_CHOOSER);
+
   gtk_widget_init_template (GTK_WIDGET (self));
 
   // Signals
@@ -480,16 +468,6 @@ rule_setup_dialog_init (RuleSetupDialog *self)
                     "clicked",
                     G_CALLBACK (rule_setup_dialog_action_button_clicked),
                     self);
-
-  g_signal_connect (priv->h_spinbutton,
-                    "output",
-                    G_CALLBACK (rule_setup_dialog_show_leading_zeros),
-                    NULL);
-
-  g_signal_connect (priv->m_spinbutton,
-                    "output",
-                    G_CALLBACK (rule_setup_dialog_show_leading_zeros),
-                    NULL);
 
   // Widgets
   adw_bin_set_child (priv->days_row_bin,

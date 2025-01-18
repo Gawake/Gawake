@@ -63,63 +63,7 @@
 
                     <!-- BOX WITH TIME SPIN BUTTONS -->
                     <child>
-                      <object class="GtkBox" id="time_box">
-                        <property name="halign">center</property>
-                        <property name="margin-bottom">12</property>
-                        <property name="spacing">6</property>
-                        <style>
-                          <class name="rule-setup-time"/>
-                        </style>
-                        <child>
-                          <object class="GtkSpinButton" id="h_spinbutton">
-                            <property name="text">0</property>
-                            <property name="xalign">0.5</property>
-                            <property name="orientation">vertical</property>
-                            <property name="numeric">true</property>
-                            <property name="wrap">true</property>
-                            <property name="width-request">60</property>
-                            <property name="adjustment">
-                              <object class="GtkAdjustment">
-                                <property name="upper">23</property>
-                                <property name="step_increment">1</property>
-                                <property name="page_increment">10</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="label2">
-                            <property name="label">∶</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSpinButton" id="m_spinbutton">
-                            <property name="text">0</property>
-                            <property name="xalign">0.5</property>
-                            <property name="orientation">vertical</property>
-                            <property name="numeric">true</property>
-                            <property name="wrap">true</property>
-                            <property name="width-request">60</property>
-                            <property name="adjustment">
-                              <object class="GtkAdjustment">
-                                <property name="upper">59</property>
-                                <property name="step_increment">1</property>
-                                <property name="page_increment">10</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-
-                        <!-- TODO AM and PM should be implemented? -->
-                        <!-- <child> -->
-                        <!--   <object class="AdwBin" id="am_pm_bin"> -->
-                        <!--     <property name="visible">False</property> -->
-                        <!--     <property name="margin_start">6</property> -->
-                        <!--     <property name="margin_end">6</property> -->
-                        <!--   </object> -->
-                        <!-- </child> -->
-
-                      </object>
+                      <object class="TimeChooser" id="time_chooser" />
                     </child>
 
                     <!-- On Gnome Clocks, this is another class -->
