@@ -23,6 +23,7 @@
 #include "rule-setup-dialog.h"
 #include "rule-setup-dialog-edit.h"
 #include "days-row.h"
+#include "mode-row.h"
 #include "time-chooser.h"
 
 typedef struct
@@ -31,7 +32,7 @@ typedef struct
   GtkButton             *cancel_button;
   GtkButton             *action_button;
   AdwEntryRow           *name_entry;
-  AdwComboRow           *mode_row;
+  ModeRow               *mode_row;
   AdwBin                *days_row_bin;
   AdwBin                *conflicting_days_row_bin;
   GtkLabel              *conflicting_rule_title;
@@ -206,7 +207,7 @@ rule_setup_dialog_action_button_clicked (GtkButton *button,
   incoming_rule.active = priv->active;
 
   // Mode
-  incoming_rule.mode = (Mode) adw_combo_row_get_selected (priv->mode_row);
+  incoming_rule.mode = mode_row_get_mode (priv->mode_row);
 
   // Table
   incoming_rule.table = priv->table;
@@ -328,7 +329,7 @@ rule_setup_dialog_constructed (GObject *gobject)
 
       // Mode
       if (priv->table == TABLE_OFF)
-        adw_combo_row_set_selected (priv->mode_row, (guint) rule.mode);
+        mode_row_set_mode (priv->mode_row, (guint) rule.mode);
     }
   else
     {
@@ -455,6 +456,7 @@ rule_setup_dialog_init (RuleSetupDialog *self)
 
   // Esure my custom widgets types
   g_type_ensure (TIME_TYPE_CHOOSER);
+  g_type_ensure (MODE_TYPE_ROW);
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
@@ -483,7 +485,7 @@ rule_setup_dialog_init (RuleSetupDialog *self)
   priv->mode = MODE_LAST;
   priv->rule_time_validator = NULL;
 
-  adw_combo_row_set_selected (priv->mode_row, (guint) MODE_OFF);
+  mode_row_set_mode (priv->mode_row, (guint) MODE_OFF);
 }
 
 RuleSetupDialog *
