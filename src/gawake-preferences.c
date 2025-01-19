@@ -24,6 +24,8 @@
 # include "database-connection/database-connection.h"
 #undef ALLOW_MANAGING_CONFIGURATION
 
+#include "mode-row.h"
+
 #include "gawake-preferences.h"
 
 struct _GawakePreferences
@@ -32,7 +34,7 @@ struct _GawakePreferences
 
   // Widgets
   AdwActionRow                   *shutdown_action_row;
-  AdwComboRow                    *mode_row;
+  ModeRow                        *mode_row;
   AdwActionRow                   *localtime_action_row;
   AdwActionRow                   *notification_time_row;
   GtkSpinButton                  *notification_spin_button;
@@ -87,7 +89,7 @@ static gboolean
 gawake_preferences_on_close_request (GtkWindow *self,
                                      gpointer   user_data)
 {
-  Mode mode = (Mode) adw_combo_row_get_selected (GAWAKE_PREFERENCES (self)->mode_row);
+  Mode mode = mode_row_get_mode (GAWAKE_PREFERENCES (self)->mode_row);
 
   if (configuration_set_default_mode (mode) == EXIT_FAILURE)
     g_warning ("Failed to save default mode");
@@ -119,6 +121,10 @@ gawake_preferences_init (GawakePreferences *self)
   bool use_localtime = FALSE;
   gint notification_time = 1;
   Mode default_mode = MODE_OFF;
+
+  // Ensure my custom widgets types
+  g_type_ensure (MODE_TYPE_ROW);
+
   gtk_widget_init_template (GTK_WIDGET (self));
 
   // SHUTDOWN ON FAILURE
@@ -154,7 +160,6 @@ gawake_preferences_init (GawakePreferences *self)
     {
       self->notification_spin_button = GTK_SPIN_BUTTON (gtk_spin_button_new_with_range (1, 60, 1));
       gtk_spin_button_set_value (self->notification_spin_button, (gdouble) notification_time);
-      gtk_widget_add_css_class (GTK_WIDGET (self->notification_spin_button), "spin");
       gtk_widget_set_valign (GTK_WIDGET (self->notification_spin_button), GTK_ALIGN_CENTER);
       adw_action_row_add_suffix (self->notification_time_row, GTK_WIDGET (self->notification_spin_button));
       adw_action_row_set_activatable_widget (self->notification_time_row, GTK_WIDGET (self->notification_spin_button));
@@ -173,7 +178,7 @@ gawake_preferences_init (GawakePreferences *self)
     }
   else
     {
-      adw_combo_row_set_selected (self->mode_row, (guint) default_mode);
+      mode_row_set_mode (self->mode_row, default_mode);
     }
 
   // USE LOCALTIME
