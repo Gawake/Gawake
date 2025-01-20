@@ -96,6 +96,10 @@ time_chooser_class_init (TimeChooserClass *klass)
 static void
 time_chooser_init (TimeChooser *self)
 {
+  // TODO free
+  GDateTime *datetime = NULL;
+  GTimeZone *tz = NULL;
+
   gtk_widget_init_template (GTK_WIDGET (self));
 
   g_signal_connect (self->h_spinbutton,
@@ -107,6 +111,16 @@ time_chooser_init (TimeChooser *self)
                     "output",
                     G_CALLBACK (time_chooser_show_leading_zeros),
                     NULL);
+
+  // Set current time
+  // TODO handle AM/PM
+  tz = g_time_zone_new_local ();
+  datetime = g_date_time_new_now (tz);
+  time_chooser_set_hour (self, (gdouble) g_date_time_get_hour (datetime));
+  time_chooser_set_minutes (self, (gdouble) g_date_time_get_minute (datetime));
+
+  g_date_time_unref (datetime);
+  g_time_zone_unref (tz);
 }
 
 TimeChooser *
