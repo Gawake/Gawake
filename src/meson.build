@@ -11,7 +11,10 @@ gawake_sources = [
   'rule-face.c',
   'days-row.c',
   'error-dialog.c',
-  'gawake-preferences.c'
+  'gawake-preferences.c',
+  'time-chooser.c',
+  'custom-schedule-face.c',
+  'mode-row.c'
 ]
 
 gawake_sources += database_connection_sources

@@ -2,7 +2,6 @@
 <interface>
   <template class="ModeRow" parent="AdwComboRow">
     <property name="title" translatable="yes">Mode</property>
-    <property name="subtitle">test</property>
     <property name="model">
       <object class="GtkStringList">
         <items>

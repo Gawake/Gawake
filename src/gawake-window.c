@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include "gawake-window.h"
+#include "custom-schedule-face.h"
 #include "rule-face.h"
 #include "error-dialog.h"
 
@@ -120,6 +121,9 @@ static void
 gawake_window_init (GawakeWindow *self)
 {
   self->error_dialog = NULL;
+
+  // Ensure the type of my custom widgets
+  g_type_ensure (CUSTOM_TYPE_SCHEDULE_FACE);
 
   gtk_widget_init_template (GTK_WIDGET (self));
 

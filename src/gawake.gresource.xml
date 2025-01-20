@@ -8,13 +8,18 @@
     <file preprocess="xml-stripblanks">days-row.ui</file>
     <file preprocess="xml-stripblanks">error-dialog.ui</file>
     <file preprocess="xml-stripblanks">gawake-preferences.ui</file>
+    <file preprocess="xml-stripblanks">time-chooser.ui</file>
+    <file preprocess="xml-stripblanks">custom-schedule-face.ui</file>
+    <file preprocess="xml-stripblanks">mode-row.ui</file>
 
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
 
     <file alias="style.css">style.css</file>
   </gresource>
 
-  <gresource prefix="/io/github/kelvinnovais/Kasasa">
+  <gresource prefix="/io/github/gawake/Gawake">
     <file preprocess="xml-stripblanks">icons/scalable/actions/people-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/wrench-wide-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/today-alt-symbolic.svg</file>
   </gresource>
 </gresources>
