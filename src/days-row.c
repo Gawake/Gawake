@@ -162,6 +162,14 @@ days_row_constructed (GObject *gobject)
 }
 
 static void
+days_row_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), DAYS_TYPE_ROW);
+
+  G_OBJECT_CLASS (days_row_parent_class)->dispose (gobject);
+}
+
+static void
 days_row_class_init (DaysRowClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -211,6 +219,7 @@ days_row_class_init (DaysRowClass *klass)
                                      obj_properties);
 
   G_OBJECT_CLASS (klass)->constructed = days_row_constructed;
+  G_OBJECT_CLASS (klass)->dispose = days_row_dispose;
 }
 
 static void

@@ -40,12 +40,22 @@ mode_row_set_mode (ModeRow *self, Mode mode)
 }
 
 static void
+mode_row_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), MODE_TYPE_ROW);
+
+  G_OBJECT_CLASS (mode_row_parent_class)->dispose (gobject);
+}
+
+static void
 mode_row_class_init (ModeRowClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/io/github/gawake/Gawake/mode-row.ui");
+
+  G_OBJECT_CLASS (klass)->dispose = mode_row_dispose;
 }
 
 static void

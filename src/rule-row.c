@@ -367,6 +367,14 @@ rule_row_set_property (GObject      *object,
 }
 
 static void
+rule_row_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), RULE_TYPE_ROW);
+
+  G_OBJECT_CLASS (rule_row_parent_class)->dispose (gobject);
+}
+
+static void
 rule_row_class_init (RuleRowClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -410,6 +418,8 @@ rule_row_class_init (RuleRowClass *klass)
 
   // Constructor
   G_OBJECT_CLASS (klass)->constructed = rule_row_constructed;
+
+  G_OBJECT_CLASS (klass)->dispose = rule_row_dispose;
 
   // Signals
   obj_signals[SIGNAL_RULE_DELETED] =

@@ -145,6 +145,14 @@ error_dialog_constructed (GObject *gobject)
 }
 
 static void
+error_dialog_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), ERROR_TYPE_DIALOG);
+
+  G_OBJECT_CLASS (error_dialog_parent_class)->dispose (gobject);
+}
+
+static void
 error_dialog_class_init (ErrorDialogClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -175,6 +183,7 @@ error_dialog_class_init (ErrorDialogClass *klass)
                                      obj_properties);
 
   G_OBJECT_CLASS (klass)->constructed = error_dialog_constructed;
+  G_OBJECT_CLASS (klass)->dispose = error_dialog_dispose;
 }
 
 static void

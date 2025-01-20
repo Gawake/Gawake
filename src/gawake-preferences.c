@@ -100,6 +100,14 @@ gawake_preferences_on_close_request (GtkWindow *self,
 }
 
 static void
+gawake_preferences_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), GAWAKE_TYPE_PREFERENCES);
+
+  G_OBJECT_CLASS (gawake_preferences_parent_class)->dispose (gobject);
+}
+
+static void
 gawake_preferences_class_init (GawakePreferencesClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -112,6 +120,8 @@ gawake_preferences_class_init (GawakePreferencesClass *klass)
   gtk_widget_class_bind_template_child (widget_class, GawakePreferences, mode_row);
   gtk_widget_class_bind_template_child (widget_class, GawakePreferences, localtime_action_row);
   gtk_widget_class_bind_template_child (widget_class, GawakePreferences, notification_time_row);
+
+  G_OBJECT_CLASS (klass)->dispose = gawake_preferences_dispose;
 }
 
 static void

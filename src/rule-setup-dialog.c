@@ -352,6 +352,8 @@ rule_setup_dialog_dispose (GObject* object)
 
   rule_validate_time_finalize (&priv->rule_time_validator);
 
+  gtk_widget_dispose_template (GTK_WIDGET (object), RULE_TYPE_SETUP_DIALOG);
+
   G_OBJECT_CLASS (rule_setup_dialog_parent_class)->dispose (object);
 }
 

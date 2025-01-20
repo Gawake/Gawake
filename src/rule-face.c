@@ -285,6 +285,14 @@ rule_face_set_property (GObject      *object,
 }
 
 static void
+rule_face_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), RULE_TYPE_FACE);
+
+  G_OBJECT_CLASS (rule_face_parent_class)->dispose (gobject);
+}
+
+static void
 rule_face_class_init (RuleFaceClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -318,6 +326,8 @@ rule_face_class_init (RuleFaceClass *klass)
 
   // Constructor
   G_OBJECT_CLASS (klass)->constructed = rule_face_constructed;
+
+  G_OBJECT_CLASS (klass)->dispose = rule_face_dispose;
 }
 
 static void

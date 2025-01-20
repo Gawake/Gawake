@@ -70,6 +70,14 @@ time_chooser_show_leading_zeros (GtkSpinButton *spin,
 }
 
 static void
+time_chooser_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), TIME_TYPE_CHOOSER);
+
+  G_OBJECT_CLASS (time_chooser_parent_class)->dispose (gobject);
+}
+
+static void
 time_chooser_class_init (TimeChooserClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -80,6 +88,8 @@ time_chooser_class_init (TimeChooserClass *klass)
   // Widgets
   gtk_widget_class_bind_template_child (widget_class, TimeChooser, h_spinbutton);
   gtk_widget_class_bind_template_child (widget_class, TimeChooser, m_spinbutton);
+
+  G_OBJECT_CLASS (klass)->dispose = time_chooser_dispose;
 
 }
 

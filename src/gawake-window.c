@@ -103,6 +103,14 @@ gawake_window_show_error_dialog (gpointer user_data)
 }
 
 static void
+gawake_window_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), GAWAKE_TYPE_WINDOW);
+
+  G_OBJECT_CLASS (gawake_window_parent_class)->dispose (gobject);
+}
+
+static void
 gawake_window_class_init (GawakeWindowClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -115,6 +123,8 @@ gawake_window_class_init (GawakeWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, turn_off_page);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, add_button);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, stack);
+
+  G_OBJECT_CLASS (klass)->dispose = gawake_window_dispose;
 }
 
 static void

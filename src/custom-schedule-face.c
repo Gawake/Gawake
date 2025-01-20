@@ -86,6 +86,14 @@ custom_schedule_face_action_button_clicked (GtkButton *button,
 }
 
 static void
+custom_schedule_face_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), CUSTOM_TYPE_SCHEDULE_FACE);
+
+  G_OBJECT_CLASS (custom_schedule_face_parent_class)->dispose (gobject);
+}
+
+static void
 custom_schedule_face_class_init (CustomScheduleFaceClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -99,6 +107,8 @@ custom_schedule_face_class_init (CustomScheduleFaceClass *klass)
   gtk_widget_class_bind_template_child (widget_class, CustomScheduleFace, action_button);
   gtk_widget_class_bind_template_child (widget_class, CustomScheduleFace, toast_overlay);
   gtk_widget_class_bind_template_child (widget_class, CustomScheduleFace, mode_row);
+
+  G_OBJECT_CLASS (klass)->dispose = custom_schedule_face_dispose;
 }
 
 static void
