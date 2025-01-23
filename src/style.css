@@ -11,3 +11,6 @@
   color: @red_1;
 }
 
+.am-pm-toggle-button {
+  font-size: 18pt;
+}

@@ -55,7 +55,7 @@ custom_schedule_face_action_button_clicked (GtkButton *button,
   CustomScheduleFace *self = CUSTOM_SCHEDULE_FACE (user_data);
 
   // Time
-  hour = time_chooser_get_hour (self->time_chooser);
+  hour = time_chooser_get_hour24 (self->time_chooser);
   minutes = time_chooser_get_minutes (self->time_chooser);
 
   // Date
@@ -75,6 +75,10 @@ custom_schedule_face_action_button_clicked (GtkButton *button,
            day, month, year,
            mode);
 
+  // TODO
+  // make custom rule validation public
+  // validate
+  // if valida
   if (rule_custom_schedule (hour, minutes, day, month, year, mode) == EXIT_SUCCESS)
     {
       // TODO countdown
