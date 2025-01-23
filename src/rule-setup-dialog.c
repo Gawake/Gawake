@@ -194,7 +194,7 @@ rule_setup_dialog_action_button_clicked (GtkButton *button,
               "%s", gtk_editable_get_text (GTK_EDITABLE (priv->name_entry)));
 
   // Hour
-  incoming_rule.hour = (uint8_t) time_chooser_get_hour (priv->time_chooser);
+  incoming_rule.hour = (uint8_t) time_chooser_get_hour24 (priv->time_chooser);
 
   // Minutes
   incoming_rule.minutes = (uint8_t) time_chooser_get_minutes (priv->time_chooser);
@@ -315,7 +315,7 @@ rule_setup_dialog_constructed (GObject *gobject)
       gtk_editable_set_text (GTK_EDITABLE (priv->name_entry), rule.name);
 
       // Hour
-      time_chooser_set_hour (priv->time_chooser, (gdouble) rule.hour);
+      time_chooser_set_hour24 (priv->time_chooser, (gdouble) rule.hour);
 
       // Minutes
       time_chooser_set_minutes (priv->time_chooser, (gdouble) rule.minutes);

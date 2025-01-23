@@ -17,7 +17,6 @@
         <property name="width-request">60</property>
         <property name="adjustment">
           <object class="GtkAdjustment">
-            <property name="upper">23</property>
             <property name="step_increment">1</property>
             <property name="page_increment">10</property>
           </object>
@@ -47,14 +46,25 @@
       </object>
     </child>
 
-    <!-- TODO AM and PM should be implemented? -->
-    <!-- <child> -->
-    <!--   <object class="AdwBin" id="am_pm_bin"> -->
-    <!--     <property name="visible">false</property> -->
-    <!--     <property name="margin_start">6</property> -->
-    <!--     <property name="margin_end">6</property> -->
-    <!--   </object> -->
-    <!-- </child> -->
+    <child>
+      <object class="AdwBin" id="am_pm_bin">
+        <property name="visible">false</property>
+        <property name="margin_start">6</property>
+        <property name="margin_end">6</property>
+        <child>
+          <object class="GtkButton" id="am_pm_button">
+            <property name="hexpand">false</property>
+            <property name="vexpand">false</property>
+            <property name="halign">center</property>
+            <property name="valign">center</property>
+            <property name="width-request">71</property>
+            <style>
+              <class name="am-pm-toggle-button"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
 
   </template>
 </interface>

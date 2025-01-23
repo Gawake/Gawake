@@ -30,9 +30,9 @@ G_DECLARE_FINAL_TYPE (TimeChooser, time_chooser, TIME, CHOOSER, GtkBox)
 
 TimeChooser *time_chooser_new (void);
 
-void time_chooser_set_hour (TimeChooser *self, gdouble hour);
+void time_chooser_set_hour24 (TimeChooser *self, gdouble hour24);
 void time_chooser_set_minutes (TimeChooser *self, gdouble minutes);
-guint8 time_chooser_get_hour (TimeChooser *self);
+guint8 time_chooser_get_hour24 (TimeChooser *self);
 guint8 time_chooser_get_minutes (TimeChooser *self);
 
 G_END_DECLS

@@ -18,10 +18,12 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "rule-row.h"
+
 #include <glib/gi18n.h>
 #include <inttypes.h>
 
-#include "rule-row.h"
+#include "database-connection/database-connection.h"
 
 struct _RuleRow
 {
@@ -133,17 +135,29 @@ rule_row_set_title (RuleRow  *self,
 
 static void
 rule_row_set_time (RuleRow  *self,
-                   guint8    hour,
-                   guint8    minutes)
+                   guint8    _hour,
+                   guint8    _minutes)
 {
-  // HH:MM AM'\n' == 9
-  const gulong time_length = 6;
-  gchar rule_time[time_length];
+  TimeFormat format = time_converter_get_format ();
+  g_autofree gchar *time_formatted = NULL;
+  g_autoptr (GDateTime) rule_time = NULL;
+  g_autoptr (GDateTime) now = NULL;
 
-  g_snprintf (rule_time, time_length,
-              "%02d:%02d", hour, minutes);
+  /* Getting <now> time merely to use 'day', 'month' and 'year'
+   * to make a valid GDateTime for <rule_time>
+   */
+  now = g_date_time_new_now_local ();
+  rule_time = g_date_time_new_local (g_date_time_get_year (now),
+                                     g_date_time_get_month (now),
+                                     g_date_time_get_day_of_month (now),
+                                     _hour,
+                                     _minutes,
+                                     00);
 
-  gtk_label_set_text (self->time, rule_time);
+  time_formatted = g_date_time_format (rule_time,
+                                       (format == TIME_FORMAT_TWELVE) ? "%I:%M %p" : "%H:%M");
+
+  gtk_label_set_text (self->time, time_formatted);
 }
 
 static void
