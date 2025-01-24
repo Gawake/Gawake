@@ -52,7 +52,7 @@ enum
 
 static GParamSpec *obj_properties[N_PROPS];
 
-G_DEFINE_TYPE (DaysRow, days_row, GTK_TYPE_BOX)
+G_DEFINE_FINAL_TYPE (DaysRow, days_row, GTK_TYPE_BOX)
 
 void
 days_row_get_activated (DaysRow *self,

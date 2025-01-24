@@ -43,7 +43,7 @@ struct _GawakePreferences
   GtkWidget                      *localtime_switch;
 };
 
-G_DEFINE_TYPE (GawakePreferences, gawake_preferences, ADW_TYPE_PREFERENCES_WINDOW)
+G_DEFINE_FINAL_TYPE (GawakePreferences, gawake_preferences, ADW_TYPE_PREFERENCES_WINDOW)
 
 static gboolean
 gawake_preferences_switch_state_set (GtkSwitch *switch_button,

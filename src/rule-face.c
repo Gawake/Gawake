@@ -53,7 +53,7 @@ enum
 
 static GParamSpec *obj_properties[N_PROPS];
 
-G_DEFINE_TYPE (RuleFace, rule_face, ADW_TYPE_BIN)
+G_DEFINE_FINAL_TYPE (RuleFace, rule_face, ADW_TYPE_BIN)
 
 static void
 rule_face_set_empty_view (RuleFace *self)

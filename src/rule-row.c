@@ -92,7 +92,7 @@ enum
 
 static guint obj_signals[N_SIGNALS];
 
-G_DEFINE_TYPE (RuleRow, rule_row, GTK_TYPE_LIST_BOX_ROW)
+G_DEFINE_FINAL_TYPE (RuleRow, rule_row, GTK_TYPE_LIST_BOX_ROW)
 
 guint16
 rule_row_get_id (RuleRow *self)

@@ -25,7 +25,7 @@ struct _ModeRow
   AdwComboRow           parent_instance;
 };
 
-G_DEFINE_TYPE (ModeRow, mode_row, ADW_TYPE_COMBO_ROW)
+G_DEFINE_FINAL_TYPE (ModeRow, mode_row, ADW_TYPE_COMBO_ROW)
 
 Mode
 mode_row_get_mode (ModeRow *self)

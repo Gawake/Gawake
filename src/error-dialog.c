@@ -48,7 +48,7 @@ enum
 
 static GParamSpec *obj_properties[N_PROPS];
 
-G_DEFINE_TYPE (ErrorDialog, error_dialog, ADW_TYPE_WINDOW)
+G_DEFINE_FINAL_TYPE (ErrorDialog, error_dialog, ADW_TYPE_WINDOW)
 
 static void
 error_dialog_set_property (GObject      *object,

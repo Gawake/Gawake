@@ -27,7 +27,7 @@ struct _RuleSetupDialogEdit
   RuleSetupDialog     parent_instance;
 };
 
-G_DEFINE_TYPE (RuleSetupDialogEdit, rule_setup_dialog_edit, RULE_TYPE_SETUP_DIALOG)
+G_DEFINE_FINAL_TYPE (RuleSetupDialogEdit, rule_setup_dialog_edit, RULE_TYPE_SETUP_DIALOG)
 
 static guint16
 rule_setup_dialog_edit_perform_action (Rule *rule)
