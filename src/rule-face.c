@@ -35,7 +35,7 @@ struct _RuleFace
   GtkScrolledWindow   *list_view;
   GtkButton           *action_button;
   GtkListBox          *list_box;
-  AdwToastOverlay     *toast;
+  AdwToastOverlay     *toast_overlay;
 
   /* Instace variables */
   guint16              row_count;
@@ -97,7 +97,7 @@ rule_face_show_error_for_row (RuleRow     *row,
 {
   RuleFace *self = RULE_FACE (user_data);
 
-  adw_toast_overlay_add_toast (self->toast, adw_toast_new (error));
+  adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new (error));
 }
 
 static void
@@ -226,7 +226,7 @@ rule_face_populate_rules (RuleFace *self)
 
   if (rule_get_all (self->table, &rules, &row_count) == EXIT_FAILURE)
     {
-      adw_toast_overlay_add_toast (self->toast, adw_toast_new (_("Failed to get rules")));
+      adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new (_("Failed to get rules")));
       return;
     }
 
@@ -306,7 +306,7 @@ rule_face_class_init (RuleFaceClass *klass)
   gtk_widget_class_bind_template_child (widget_class, RuleFace, action_button);
   gtk_widget_class_bind_template_child (widget_class, RuleFace, list_box);
   gtk_widget_class_bind_template_child (widget_class, RuleFace, list_view);
-  gtk_widget_class_bind_template_child (widget_class, RuleFace, toast);
+  gtk_widget_class_bind_template_child (widget_class, RuleFace, toast_overlay);
 
   // Properties
   obj_properties[PROP_TYPE] =

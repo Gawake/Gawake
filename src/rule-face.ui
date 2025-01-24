@@ -2,8 +2,7 @@
 <interface>
   <template class="RuleFace" parent="AdwBin">
     <child>
-      <!-- TODO rename to toast_overlay -->
-      <object class="AdwToastOverlay" id="toast">
+      <object class="AdwToastOverlay" id="toast_overlay">
         <child>
           <object class="GtkStack" id="stack">
             <property name="hhomogeneous">false</property>
