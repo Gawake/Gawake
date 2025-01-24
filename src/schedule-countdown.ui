@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="ScheduleCountdown" parent="AdwWindow">
+    <property name="modal">true</property>
+    <property name="destroy_with_parent">true</property>
+    <property name="default-width">360</property>
+    <property name="default-height">400</property>
+    <property name="title" translatable="yes">Gawake</property>
+
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <!-- <child> -->
+        <!--   <object class="AdwHeaderBar"> -->
+        <!--     <property name="show-start-title-buttons">false</property> -->
+        <!--     <property name="show-end-title-buttons">false</property> -->
+        <!--   </object>      --> <!-- AdwHeaderBar -->
+        <!-- </child>         --> <!-- top -->
+
+        <child>
+          <object class="AdwClamp">
+            <property name="maximum-size">400</property>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">12</property>
+                <property name="orientation">vertical</property>
+                <!-- <property name="margin-top">15</property> -->
+                <!-- <property name="margin-bottom">15</property> -->
+                <!-- <property name="margin-start">12</property> -->
+                <!-- <property name="margin-end">12</property> -->
+
+                <child>
+                  <object class="AdwStatusPage" id="status_page">
+                    <property name="vexpand">true</property>
+                    <property name="hexpand">true</property>
+                    <property name="icon-name">system-shutdown-symbolic</property>
+                    <property name="description" translatable="yes">Your computer is about to sleep</property>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="halign">center</property>
+                        <property name="spacing">20</property>
+                        <child>
+                          <object class="GtkButton" id="schedule_button">
+                            <property name="label" translatable="yes">Schedule</property>
+                            <property name="width-request">150</property>
+                            <property name="use-underline">true</property>
+                            <property name="halign">center</property>
+                            <style>
+                              <class name="destructive-action"/>
+                              <class name="pill"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="cancel_button">
+                            <property name="label" translatable="yes">Cancel</property>
+                            <property name="width-request">150</property>
+                            <property name="use-underline">true</property>
+                            <property name="halign">center</property>
+                            <style>
+                              <class name="pill"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+
+              </object>
+            </child>
+          </object>
+        </child>
+      </object> <!-- GtkBox -->
+    </child>
+
+  </template> <!-- AdwWindow -->
+</interface>
