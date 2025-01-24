@@ -11,6 +11,7 @@
     <file preprocess="xml-stripblanks">time-chooser.ui</file>
     <file preprocess="xml-stripblanks">custom-schedule-face.ui</file>
     <file preprocess="xml-stripblanks">mode-row.ui</file>
+    <file preprocess="xml-stripblanks">schedule-countdown.ui</file>
 
     <file preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
 

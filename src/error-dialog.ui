@@ -6,7 +6,7 @@
     <property name="default-width">520</property>
     <property name="default-height">500</property>
     <!-- translators: error dialog title -->
-    <property name="title">Error</property>
+    <property name="title" translatable="yes">Error</property>
 
     <child>
       <object class="AdwToastOverlay" id="toast">
@@ -18,15 +18,7 @@
                 <property name="show-start-title-buttons">false</property>
                 <property name="show-end-title-buttons">false</property>
 
-                <!-- Cancel button -->
-                <!-- <child> -->
-                <!--   <object class="GtkButton" id="cancel_button"> -->
-                <!--     <property name="label" translatable="yes">_Cancel</property> -->
-                <!--     <property name="use-underline">true</property> -->
-                <!--   </object> -->
-                <!-- </child> -->
-
-                <!-- ok button -->
+                <!-- Ok button -->
                 <child type="end">
                   <object class="GtkButton" id="ok_button">
                     <property name="use-underline">true</property>

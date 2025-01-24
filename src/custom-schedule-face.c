@@ -28,6 +28,7 @@
 
 #include "time-chooser.h"
 #include "mode-row.h"
+#include "schedule-countdown.h"
 
 struct _CustomScheduleFace
 {
@@ -39,52 +40,85 @@ struct _CustomScheduleFace
   GtkCalendar         *calendar;
   GtkButton           *action_button;
   ModeRow             *mode_row;
+
+  // Instance variables
+  RtcwakeArgs          rtcwake_args;
 };
 
 G_DEFINE_FINAL_TYPE (CustomScheduleFace, custom_schedule_face, ADW_TYPE_BIN)
 
 static void
+custom_schedule_face_countdown_finished (ScheduleCountdown *countdown,
+                                         gboolean           schedule,
+                                         gpointer           user_data)
+{
+  CustomScheduleFace *self = CUSTOM_SCHEDULE_FACE (user_data);
+
+  // Schedule if not canceled
+  if (schedule)
+    if (rule_custom_schedule (&self->rtcwake_args) == EXIT_FAILURE)
+      adw_toast_overlay_add_toast (self->toast_overlay,
+                                   adw_toast_new (_("Failed to make a custom schedule")));
+
+  schedule_countdown_finalize (countdown);
+}
+
+static void
 custom_schedule_face_action_button_clicked (GtkButton *button,
                                             gpointer   user_data)
 {
-  guint8 hour, minutes;
-  guint8 day, month;
-  guint16 year;
-  guint8 mode;
-  GDateTime *datetime = NULL; // TODO free
+  GDateTime *datetime = NULL;
   CustomScheduleFace *self = CUSTOM_SCHEDULE_FACE (user_data);
 
   // Time
-  hour = time_chooser_get_hour24 (self->time_chooser);
-  minutes = time_chooser_get_minutes (self->time_chooser);
+  self->rtcwake_args.hour = time_chooser_get_hour24 (self->time_chooser);
+  self->rtcwake_args.minutes = time_chooser_get_minutes (self->time_chooser);
 
   // Date
   datetime = gtk_calendar_get_date (self->calendar);
-  day = (guint8) g_date_time_get_day_of_month (datetime);
-  month = (guint8) g_date_time_get_month (datetime);
-  year = (guint16) g_date_time_get_year (datetime);
+  self->rtcwake_args.day = (guint8) g_date_time_get_day_of_month (datetime);
+  self->rtcwake_args.month = (guint8) g_date_time_get_month (datetime);
+  self->rtcwake_args.year = (guint16) g_date_time_get_year (datetime);
 
   // Mode
-  mode = (guint8) mode_row_get_mode (self->mode_row);
+  self->rtcwake_args.mode = (Mode) mode_row_get_mode (self->mode_row);
 
   g_debug ("CustomScheduleFace values:\n"\
            "\tHH:MM - %02d:%02d\n"\
            "\tDD/MM/YYYY - %02d/%02d/%d\n"\
            "\tMode: %d",
-           hour, minutes,
-           day, month, year,
-           mode);
+           self->rtcwake_args.hour, self->rtcwake_args.minutes,
+           self->rtcwake_args.day, self->rtcwake_args.month, self->rtcwake_args.year,
+           self->rtcwake_args.mode);
 
-  // TODO
-  // make custom rule validation public
-  // validate
-  // if valida
-  if (rule_custom_schedule (hour, minutes, day, month, year, mode) == EXIT_SUCCESS)
+  if (rule_validade_rtcwake_args (&self->rtcwake_args) == EXIT_SUCCESS)
     {
-      // TODO countdown
+      ScheduleCountdown *countdown = NULL;
+      GtkWidget *parent = GTK_WIDGET (self);
+
+      countdown = schedule_countdown_new ();
+
+      g_signal_connect (countdown,
+                        "schedule",
+                        G_CALLBACK (custom_schedule_face_countdown_finished),
+                        self);
+
+      while ((parent = gtk_widget_get_parent (parent)) != NULL)
+        {
+          g_debug ("Parent widget: %s", G_OBJECT_TYPE_NAME (parent));
+          if (GTK_IS_WINDOW (parent))
+            {
+              gtk_window_set_transient_for (GTK_WINDOW (countdown), GTK_WINDOW (parent));
+              break;
+            }
+        }
+
+      gtk_window_present (GTK_WINDOW (countdown));
     }
   else
-    adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new (_("Invalid values")));
+    {
+      adw_toast_overlay_add_toast (self->toast_overlay, adw_toast_new (_("Invalid values")));
+    }
 
   g_date_time_unref (datetime);
 }

@@ -14,7 +14,8 @@ gawake_sources = [
   'gawake-preferences.c',
   'time-chooser.c',
   'custom-schedule-face.c',
-  'mode-row.c'
+  'mode-row.c',
+  'schedule-countdown.c'
 ]
 
 gawake_sources += database_connection_sources

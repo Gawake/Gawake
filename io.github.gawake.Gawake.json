@@ -37,7 +37,7 @@
             "config-opts" : [
                 "--libdir=lib",
                 "-DFLATPAK=true",
-                "-DPREPROCESSOR_DEBUG=0"
+                "-DPREPROCESSOR_DEBUG=1"
             ]
         }
     ],
