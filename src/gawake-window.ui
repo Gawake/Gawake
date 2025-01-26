@@ -14,11 +14,24 @@
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkHeaderBar" id="header_bar">
-            <!-- Add rule button -->
+            <!-- Action button -->
             <child type="start">
-              <object class="GtkButton" id="add_button">
-                <property name="icon_name">list-add-symbolic</property>
-                <property name="tooltip-text" translatable="yes">Add new rule</property>
+              <object class="GtkStack" id="action_button_stack">
+                <child>
+                  <object class="GtkButton" id="direct_schedule_button">
+                    <property name="icon_name">system-shutdown-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Directly schedule next turn off rule</property>
+                    <style>
+                      <class name="destructive-action" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="add_button">
+                    <property name="icon_name">list-add-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Add new rule</property>
+                  </object>
+                </child>
               </object>
             </child>
 
@@ -44,48 +57,52 @@
         </child>
 
         <child>
-          <object class="AdwViewStack" id="stack">
-
-            <!-- PAGE: CUSTOM SCHEDULE -->
+          <object class="AdwToastOverlay" id="toast_overlay">
             <child>
-              <object class="AdwViewStackPage">
-                <property name="name">custom</property>
-                <property name="title" translatable="yes">Custom schedule</property>
-                <property name="use-underline">true</property>
-                <property name="icon_name">today-alt-symbolic</property>
-                <property name="child">
-                  <object class="CustomScheduleFace" id="custom_schedule_face" />
-                </property>
-              </object>
-            </child>
+              <object class="AdwViewStack" id="stack">
 
-            <!-- PAGE: TURN ON RULES -->
-            <child>
-              <object class="AdwViewStackPage">
-                <property name="name">on</property>
-                <property name="title" translatable="yes">Turn o_n rules</property>
-                <property name="use-underline">true</property>
-                <property name="icon_name">alarm-symbolic</property>
-                <property name="child">
-                  <object class="AdwBin" id="turn_on_page" />
-                </property>
-              </object>
-            </child>
+                <!-- PAGE: CUSTOM SCHEDULE -->
+                <child>
+                  <object class="AdwViewStackPage">
+                    <property name="name">custom-schedule</property>
+                    <property name="title" translatable="yes">Custom schedule</property>
+                    <property name="use-underline">true</property>
+                    <property name="icon_name">today-alt-symbolic</property>
+                    <property name="child">
+                      <object class="CustomScheduleFace" id="custom_schedule_face" />
+                    </property>
+                  </object>
+                </child>
 
-            <!-- PAGE: TURN OFF RULES -->
-            <child>
-              <object class="AdwViewStackPage">
-                <property name="name">off</property>
-                <property name="title" translatable="yes">Turn o_ff rules</property>
-                <property name="use-underline">true</property>
-                <property name="icon-name">system-shutdown-symbolic</property>
-                <property name="child">
-                  <object class="AdwBin" id="turn_off_page" />
-                </property>
-              </object>
-            </child>
+                <!-- PAGE: TURN ON RULES -->
+                <child>
+                  <object class="AdwViewStackPage">
+                    <property name="name">on</property>
+                    <property name="title" translatable="yes">Turn o_n rules</property>
+                    <property name="use-underline">true</property>
+                    <property name="icon_name">alarm-symbolic</property>
+                    <property name="child">
+                      <object class="AdwBin" id="turn_on_page" />
+                    </property>
+                  </object>
+                </child>
 
-          </object>   <!-- AdwStackView -->
+                <!-- PAGE: TURN OFF RULES -->
+                <child>
+                  <object class="AdwViewStackPage">
+                    <property name="name">off</property>
+                    <property name="title" translatable="yes">Turn o_ff rules</property>
+                    <property name="use-underline">true</property>
+                    <property name="icon-name">system-shutdown-symbolic</property>
+                    <property name="child">
+                      <object class="AdwBin" id="turn_off_page" />
+                    </property>
+                  </object>
+                </child>
+
+              </object>   <!-- AdwStackView -->
+            </child>
+          </object> <!-- AdwToastOverlay -->
         </child>
       </object>
     </child>

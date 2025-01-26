@@ -18,6 +18,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include <glib/gi18n.h>
+
 #include "config.h"
 
 #include "gawake-window.h"
@@ -33,15 +35,19 @@ struct _GawakeWindow
 {
   AdwApplicationWindow     parent_instance;
 
-  /* Template widgets */
+  // Template widgets
+  AdwToastOverlay         *toast_overlay;
+  AdwViewStack            *stack;
   AdwBin                  *turn_on_page;
   AdwBin                  *turn_off_page;
-  GtkButton               *add_button;
-  AdwViewStack            *stack;
   RuleFace                *turn_on_page_face;
   RuleFace                *turn_off_page_face;
 
-  /* Instance variables */
+  GtkStack                *action_button_stack;
+  GtkButton               *add_button;
+  GtkButton               *direct_schedule_button;
+
+  // Instance variables
   GtkWindow               *error_dialog;
   ErrorDialogType          error_dialog_type;
   gint                     database_connection_status;
@@ -53,26 +59,76 @@ static Table
 gawake_window_get_table_from_page (GawakeWindow *self)
 {
   const gchar *page_name = NULL;
-  Table table;
+  Table table = TABLE_LAST; // invalid
 
   page_name = adw_view_stack_get_visible_child_name (self->stack);
 
-  table = (g_strcmp0 (page_name, "on")) ? TABLE_OFF : TABLE_ON;
+  if (g_strcmp0 (page_name, "on") == 0)
+    table = TABLE_ON;
+
+  if (g_strcmp0 (page_name, "off") == 0)
+    table = TABLE_OFF;
 
   return table;
 }
 
 // Adding a rule
 static void
-gawake_window_add_button_clicked (GtkButton *self,
+gawake_window_add_button_clicked (GtkButton *button,
                                   gpointer   user_data)
 {
-  GawakeWindow *window = GAWAKE_WINDOW (user_data);
+  GawakeWindow *self = GAWAKE_WINDOW (user_data);
+  Table table = gawake_window_get_table_from_page (self);
 
-  if (gawake_window_get_table_from_page (window) == TABLE_ON)
-    rule_face_open_setup_add_dialog (window->turn_on_page_face);
-  else
-    rule_face_open_setup_add_dialog (window->turn_off_page_face);
+  switch (table)
+    {
+    case TABLE_ON:
+      rule_face_open_setup_add_dialog (self->turn_on_page_face);
+      break;
+
+    case TABLE_OFF:
+      rule_face_open_setup_add_dialog (self->turn_off_page_face);
+      break;
+
+    case TABLE_LAST:
+    default:
+      g_warning ("Invalid table from ViewStack");
+      return;
+    }
+}
+
+static void
+gawake_window_direct_schedule_button_clicked (GtkButton *button,
+                                              gpointer   user_data)
+{
+  GawakeWindow *self = GAWAKE_WINDOW (user_data);
+  RtcwakeArgs rtcwake_args;
+  RtcwakeArgsReturn ret;
+
+  ret = rule_get_upcoming_on (&rtcwake_args, MODE_LAST);
+
+  switch (ret)
+    {
+    case RTCWAKE_ARGS_RETURN_SUCESS:
+      // TODO send DBus signal
+      g_message ("Running direct schedule");
+      break;
+
+    case RTCWAKE_ARGS_RETURN_NOT_FOUND:
+      adw_toast_overlay_add_toast (self->toast_overlay,
+                                   adw_toast_new (_("Any turn on rule found. please create one first")));
+      break;
+
+    case RTCWAKE_ARGS_RETURN_INVALID:
+      adw_toast_overlay_add_toast (self->toast_overlay,
+                                   adw_toast_new (_("Failed: invalid arguments")));
+      break;
+
+    case RTCWAKE_ARGS_RETURN_FAILURE:
+    default:
+      adw_toast_overlay_add_toast (self->toast_overlay,
+                                   adw_toast_new (_("Failed to run direct schedule")));
+    }
 }
 
 static gboolean
@@ -103,6 +159,24 @@ gawake_window_show_error_dialog (gpointer user_data)
 }
 
 static void
+gawake_window_face_changed (GObject    *object,
+                            GParamSpec *pspec,
+                            gpointer    user_data)
+{
+  const gchar *page_name = NULL;
+  GawakeWindow *self = GAWAKE_WINDOW (user_data);
+
+  page_name = adw_view_stack_get_visible_child_name (self->stack);
+
+  if (g_strcmp0 (page_name, "custom-schedule") == 0)
+    gtk_stack_set_visible_child (self->action_button_stack,
+                                 GTK_WIDGET (self->direct_schedule_button));
+  else
+    gtk_stack_set_visible_child (self->action_button_stack,
+                                 GTK_WIDGET (self->add_button));
+}
+
+static void
 gawake_window_dispose (GObject *gobject)
 {
   gtk_widget_dispose_template (GTK_WIDGET (gobject), GAWAKE_TYPE_WINDOW);
@@ -119,10 +193,14 @@ gawake_window_class_init (GawakeWindowClass *klass)
                                                "/io/github/gawake/Gawake/gawake-window.ui");
 
   // Widgets
+  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, stack);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, turn_on_page);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, turn_off_page);
+
+  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, action_button_stack);
   gtk_widget_class_bind_template_child (widget_class, GawakeWindow, add_button);
-  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, stack);
+  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, direct_schedule_button);
+  gtk_widget_class_bind_template_child (widget_class, GawakeWindow, toast_overlay);
 
   G_OBJECT_CLASS (klass)->dispose = gawake_window_dispose;
 }
@@ -141,6 +219,16 @@ gawake_window_init (GawakeWindow *self)
   g_signal_connect (self->add_button,
                     "clicked",
                     G_CALLBACK (gawake_window_add_button_clicked),
+                    self);
+
+  g_signal_connect (self->direct_schedule_button,
+                    "clicked",
+                    G_CALLBACK (gawake_window_direct_schedule_button_clicked),
+                    self);
+
+  g_signal_connect (self->stack,
+                    "notify::visible-child",
+                    G_CALLBACK (gawake_window_face_changed),
                     self);
 
 #if !FLATPAK
