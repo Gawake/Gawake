@@ -116,7 +116,7 @@ gawake_window_direct_schedule_button_clicked (GtkButton *button,
 
     case RTCWAKE_ARGS_RETURN_NOT_FOUND:
       adw_toast_overlay_add_toast (self->toast_overlay,
-                                   adw_toast_new (_("Any turn on rule found. please create one first")));
+                                   adw_toast_new (_("Any turn on rule found, please create one first")));
       break;
 
     case RTCWAKE_ARGS_RETURN_INVALID:

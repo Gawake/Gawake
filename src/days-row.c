@@ -52,6 +52,17 @@ enum
 
 static GParamSpec *obj_properties[N_PROPS];
 
+// Signals
+enum
+{
+  SIGNAL_VALUE_UPDATED,
+
+  N_SIGNALS
+};
+
+static guint obj_signals[N_SIGNALS];
+
+
 G_DEFINE_FINAL_TYPE (DaysRow, days_row, GTK_TYPE_BOX)
 
 void
@@ -77,6 +88,15 @@ days_row_set_activated (DaysRow *self, bool days[7])
   gtk_toggle_button_set_active (self->day_4, days[4]);
   gtk_toggle_button_set_active (self->day_5, days[5]);
   gtk_toggle_button_set_active (self->day_6, days[6]);
+}
+
+static void
+days_row_emit_value_updated (GtkToggleButton *self,
+                             gpointer         user_data)
+{
+  g_signal_emit (DAYS_ROW (user_data),
+                 obj_signals[SIGNAL_VALUE_UPDATED],
+                 0);
 }
 
 static void
@@ -218,6 +238,17 @@ days_row_class_init (DaysRowClass *klass)
                                      N_PROPS,
                                      obj_properties);
 
+  // Signals
+  obj_signals[SIGNAL_VALUE_UPDATED] =
+    g_signal_new ("value-updated",
+                  DAYS_TYPE_ROW,
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE,            // no return value
+                  0);                     // 0 arguments
+
   G_OBJECT_CLASS (klass)->constructed = days_row_constructed;
   G_OBJECT_CLASS (klass)->dispose = days_row_dispose;
 }
@@ -229,6 +260,42 @@ days_row_init (DaysRow *self)
 
   self->rule_id = 0;
   self->table = TABLE_LAST;
+
+  // Signals
+  g_signal_connect (self->day_0,
+                    "clicked",
+                    G_CALLBACK (days_row_emit_value_updated),
+                    self);
+
+  g_signal_connect (self->day_1,
+                    "clicked",
+                    G_CALLBACK (days_row_emit_value_updated),
+                    self);
+
+  g_signal_connect (self->day_2,
+                    "clicked",
+                    G_CALLBACK (days_row_emit_value_updated),
+                    self);
+
+  g_signal_connect (self->day_3,
+                    "clicked",
+                    G_CALLBACK (days_row_emit_value_updated),
+                    self);
+
+  g_signal_connect (self->day_4,
+                    "clicked",
+                    G_CALLBACK (days_row_emit_value_updated),
+                    self);
+
+  g_signal_connect (self->day_5,
+                    "clicked",
+                    G_CALLBACK (days_row_emit_value_updated),
+                    self);
+
+  g_signal_connect (self->day_6,
+                    "clicked",
+                    G_CALLBACK (days_row_emit_value_updated),
+                    self);
 }
 
 DaysRow *

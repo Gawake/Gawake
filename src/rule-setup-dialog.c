@@ -37,7 +37,7 @@ typedef struct
   AdwBin                *conflicting_days_row_bin;
   GtkLabel              *conflicting_rule_title;
   GtkLabel              *conflicting_rule_time;
-  GtkRevealer           *label_revealer;
+  GtkRevealer           *conflicting_rule_revealer;
   TimeChooser           *time_chooser;
 
   /* Instance variables */
@@ -106,6 +106,39 @@ rule_setup_dialog_cancel_button_clicked (GtkButton *self,
 }
 
 static void
+rule_setup_dialog_read_values (RuleSetupDialog *self,
+                               Rule            *rule)
+{
+  RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
+
+  // Id
+  rule->id = priv->rule_id;
+
+  // Name
+  g_snprintf (rule->name, RULE_NAME_LENGTH,
+              "%s", gtk_editable_get_text (GTK_EDITABLE (priv->name_entry)));
+
+  // Hour
+  rule->hour = (uint8_t) time_chooser_get_hour24 (priv->time_chooser);
+
+  // Minutes
+  rule->minutes = (uint8_t) time_chooser_get_minutes (priv->time_chooser);
+
+  // Days
+  days_row_get_activated (DAYS_ROW (adw_bin_get_child (priv->days_row_bin)),
+                          rule->days);
+
+  // Active
+  rule->active = priv->active;
+
+  // Mode
+  rule->mode = mode_row_get_mode (priv->mode_row);
+
+  // Table
+  rule->table = priv->table;
+}
+
+static void
 rule_setup_dialog_set_conflicting_rule (RuleSetupDialog *self,
                                         guint16          conflicting_rule_id)
 {
@@ -124,50 +157,32 @@ rule_setup_dialog_set_conflicting_rule (RuleSetupDialog *self,
   gtk_label_set_label (priv->conflicting_rule_time, rule_time);
   days_row_set_activated (DAYS_ROW (adw_bin_get_child (priv->conflicting_days_row_bin)),
                           rule.days);
-  gtk_revealer_set_reveal_child (priv->label_revealer, TRUE);
+  gtk_revealer_set_reveal_child (priv->conflicting_rule_revealer, TRUE);
 }
 
 static gboolean
-rule_setup_dialog_check_for_conflicting_rule (RuleSetupDialog *self,
-                                              Rule            *incoming_rule)
+rule_setup_dialog_check_for_conflicting_rule (RuleSetupDialog *self)
 {
+  Rule incoming_rule;
   RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
+  guint16 rule_id = 0;
   guint16 conflicting_rule_id = 0;
+
+  rule_setup_dialog_read_values (self, &incoming_rule);
 
   // When the rule is being edited, only check for conflicting time if days or time was changed
   if (RULE_IS_SETUP_DIALOG_EDIT (self))
-    {
-      Rule old_rule;
-      gboolean days_changed = FALSE;
-
-      rule_get_single (priv->rule_id, priv->table, &old_rule);
-
-      for (gint i = 0; i < 7; i++)
-        {
-          if (incoming_rule->days[i] != old_rule.days[i])
-            {
-              days_changed = TRUE;
-              break;
-            }
-        }
-
-      if (incoming_rule->hour == old_rule.hour
-          && incoming_rule->minutes == old_rule.minutes
-          && !days_changed)
-        {
-          gtk_revealer_set_reveal_child (priv->label_revealer, FALSE);
-          return FALSE;
-        }
-    }
+    rule_id = priv->rule_id;
 
   conflicting_rule_id = rule_validate_time (priv->rule_time_validator,
-                                            incoming_rule->hour,
-                                            incoming_rule->minutes,
-                                            incoming_rule->days);
+                                            rule_id,
+                                            incoming_rule.hour,
+                                            incoming_rule.minutes,
+                                            incoming_rule.days);
 
   if (conflicting_rule_id == 0)
     {
-      gtk_revealer_set_reveal_child (priv->label_revealer, FALSE);
+      gtk_revealer_set_reveal_child (priv->conflicting_rule_revealer, FALSE);
       return FALSE;
     }
   else
@@ -175,6 +190,20 @@ rule_setup_dialog_check_for_conflicting_rule (RuleSetupDialog *self,
       rule_setup_dialog_set_conflicting_rule (self, conflicting_rule_id);
       return TRUE;
     }
+}
+
+/*
+ * This is a generic funcion to detect that the user changed any value on the setup,
+ * and then check if the change doesn't conflict any other rule. This callback is
+ * connected to the widgets that affects the time signature.
+ *
+ * __widget_instance__ receives a pointer of the widget instance, do NOT use it
+ */
+static void
+rule_setup_dialod_value_changed (gpointer __widget_instance__,
+                                 gpointer user_data)
+{
+  rule_setup_dialog_check_for_conflicting_rule (RULE_SETUP_DIALOG (user_data));
 }
 
 static void
@@ -186,31 +215,7 @@ rule_setup_dialog_action_button_clicked (GtkButton *button,
   RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
   RuleSetupDialogClass *klass = RULE_SETUP_DIALOG_GET_CLASS (self);
 
-  // Id
-  incoming_rule.id = priv->rule_id;
-
-  // Name
-  g_snprintf (incoming_rule.name, RULE_NAME_LENGTH,
-              "%s", gtk_editable_get_text (GTK_EDITABLE (priv->name_entry)));
-
-  // Hour
-  incoming_rule.hour = (uint8_t) time_chooser_get_hour24 (priv->time_chooser);
-
-  // Minutes
-  incoming_rule.minutes = (uint8_t) time_chooser_get_minutes (priv->time_chooser);
-
-  // Days
-  days_row_get_activated (DAYS_ROW (adw_bin_get_child (priv->days_row_bin)),
-                          incoming_rule.days);
-
-  // Active
-  incoming_rule.active = priv->active;
-
-  // Mode
-  incoming_rule.mode = mode_row_get_mode (priv->mode_row);
-
-  // Table
-  incoming_rule.table = priv->table;
+  rule_setup_dialog_read_values (self, &incoming_rule);
 
   // Validate rule values
   if (rule_validate_rule (&incoming_rule) == EXIT_FAILURE)
@@ -221,7 +226,7 @@ rule_setup_dialog_action_button_clicked (GtkButton *button,
     }
 
   // Check if the incoming rule is conflicting with another
-  if (rule_setup_dialog_check_for_conflicting_rule (self, &incoming_rule))
+  if (rule_setup_dialog_check_for_conflicting_rule (self))
     return;
 
   // Perform action if rule is valid
@@ -369,7 +374,7 @@ rule_setup_dialog_class_init (RuleSetupDialogClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, action_button);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, name_entry);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, mode_row);
-  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, label_revealer);
+  gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_rule_revealer);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, days_row_bin);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_days_row_bin);
   gtk_widget_class_bind_template_child_private (widget_class, RuleSetupDialog, conflicting_rule_title);
@@ -453,12 +458,24 @@ static void
 rule_setup_dialog_init (RuleSetupDialog *self)
 {
   RuleSetupDialogPrivate *priv = rule_setup_dialog_get_instance_private (self);
+  DaysRow *days_row = NULL;
+  DaysRow *conflicting_days_row = NULL;
 
   // Esure my custom widgets types
   g_type_ensure (TIME_TYPE_CHOOSER);
   g_type_ensure (MODE_TYPE_ROW);
 
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  // Widgets
+  days_row = days_row_new (TRUE);
+  conflicting_days_row = days_row_new (FALSE);
+
+  adw_bin_set_child (priv->days_row_bin,
+                     GTK_WIDGET (days_row));
+
+  adw_bin_set_child (priv->conflicting_days_row_bin,
+                     GTK_WIDGET (conflicting_days_row));
 
   // Signals
   g_signal_connect (priv->cancel_button,
@@ -471,12 +488,15 @@ rule_setup_dialog_init (RuleSetupDialog *self)
                     G_CALLBACK (rule_setup_dialog_action_button_clicked),
                     self);
 
-  // Widgets
-  adw_bin_set_child (priv->days_row_bin,
-                     GTK_WIDGET (days_row_new (TRUE)));
+  g_signal_connect (priv->time_chooser,
+                    "value-updated",
+                    G_CALLBACK (rule_setup_dialod_value_changed),
+                    self);
 
-  adw_bin_set_child (priv->conflicting_days_row_bin,
-                     GTK_WIDGET (days_row_new (FALSE)));
+  g_signal_connect (days_row,
+                    "value-updated",
+                    G_CALLBACK (rule_setup_dialod_value_changed),
+                    self);
 
   // Values
   priv->rule_id = 0;

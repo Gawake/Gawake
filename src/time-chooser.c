@@ -48,7 +48,25 @@ gchar *am_pm[] =
   N_("PM")
 };
 
+// Signals
+enum
+{
+  SIGNAL_VALUE_UPDATED,
+
+  N_SIGNALS
+};
+
+static guint obj_signals[N_SIGNALS];
+
 G_DEFINE_FINAL_TYPE (TimeChooser, time_chooser, GTK_TYPE_BOX)
+
+static void
+time_chooser_emit_value_updated (TimeChooser *self)
+{
+  g_signal_emit (self,
+                 obj_signals[SIGNAL_VALUE_UPDATED],
+                 0);
+}
 
 static void
 time_chooser_set_am_pm_label (TimeChooser *self, Period period)
@@ -102,15 +120,19 @@ static gboolean
 time_chooser_show_leading_zeros (GtkSpinButton *spin,
                                  gpointer       data)
 {
-   gchar *text;
-   gint value;
+  TimeChooser *self = TIME_CHOOSER (data);
+  gchar *text;
+  gint value;
 
-   value = gtk_spin_button_get_value_as_int (spin);
-   text = g_strdup_printf ("%02d", value);
-   gtk_editable_set_text (GTK_EDITABLE (spin), text);
-   g_free (text);
+  value = gtk_spin_button_get_value_as_int (spin);
+  text = g_strdup_printf ("%02d", value);
+  gtk_editable_set_text (GTK_EDITABLE (spin), text);
+  g_free (text);
 
-   return TRUE;
+  // Notify changes
+  time_chooser_emit_value_updated (self);
+
+  return TRUE;
 }
 
 static void
@@ -119,6 +141,9 @@ time_chooser_am_pm_invert_label (GtkButton *button,
 {
   TimeChooser *self = TIME_CHOOSER (user_data);
   time_chooser_set_am_pm_label (self, !self->period);
+
+  // Notify changes
+  time_chooser_emit_value_updated (self);
 }
 
 static void
@@ -143,6 +168,17 @@ time_chooser_class_init (TimeChooserClass *klass)
   gtk_widget_class_bind_template_child (widget_class, TimeChooser, am_pm_bin);
   gtk_widget_class_bind_template_child (widget_class, TimeChooser, am_pm_button);
 
+  // Signals
+  obj_signals[SIGNAL_VALUE_UPDATED] =
+    g_signal_new ("value-updated",
+                  TIME_TYPE_CHOOSER,
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE,            // no return value
+                  0);                     // 0 arguments
+
   G_OBJECT_CLASS (klass)->dispose = time_chooser_dispose;
 }
 
@@ -156,12 +192,12 @@ time_chooser_init (TimeChooser *self)
   g_signal_connect (self->h_spinbutton,
                     "output",
                     G_CALLBACK (time_chooser_show_leading_zeros),
-                    NULL);
+                    self);
 
   g_signal_connect (self->m_spinbutton,
                     "output",
                     G_CALLBACK (time_chooser_show_leading_zeros),
-                    NULL);
+                    self);
 
   g_signal_connect (self->am_pm_button,
                     "clicked",

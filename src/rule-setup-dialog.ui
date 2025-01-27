@@ -123,7 +123,8 @@
 
                     <!-- Warning for conflicting times -->
                     <child>
-                      <object class="GtkRevealer" id="label_revealer">
+                      <object class="GtkRevealer" id="conflicting_rule_revealer">
+                        <property name="transition-duration">350</property>
                         <child>
                           <object class="GtkBox">
                             <property name="hexpand">true</property>
